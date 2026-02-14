@@ -1,0 +1,22 @@
+[
+    {
+        "input_combination": [
+            {
+                "type": 1,
+                "code": 274
+            }
+        ],
+        "target_uinput": "keyboard",
+        "output_symbol": "modify(Control_L, key(KEY_SPACE))"
+    },
+    {
+        "input_combination": [
+            {
+                "type": 1,
+                "code": 276
+            }
+        ],
+        "target_uinput": "keyboard",
+        "output_symbol": "KEY_ENTER"
+    }
+]
