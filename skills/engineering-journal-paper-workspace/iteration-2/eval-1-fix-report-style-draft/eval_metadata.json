@@ -1,0 +1,17 @@
+{
+  "eval_id": 1,
+  "eval_name": "fix-report-style-draft",
+  "prompt": "My professor says our draft reads like a lab report, not a journal paper. Here are the Methods and Results excerpts from our pipe-inspection-robot manuscript (draft_sections.tex). Revise them into proper journal style and save the revised version as revised_sections.tex.",
+  "assertions": [
+    "chronology-removed: the 'four steps ... First, Second, Third, Fourth' pipeline narration is gone, replaced by argument-ordered prose",
+    "code-identifiers-removed: wall_follow, ctrl_mode, and set_track_velocity() no longer appear in prose",
+    "config-inventory-removed: the EKF Q/R/P0 numeric listing, the 40-iteration cap, and the divergence-check interval are deleted or reduced to at most a symbolic/tabled treatment with a physical-reason sentence",
+    "defensive-completeness-deleted: the unused-simulation-mode sentence, the 'inspired by impedance control but not formally' assert-retract pair, and the 'is described in Section IV' signpost are all deleted",
+    "protocol-evicted-from-results: run count, placement, operator start, traverse speed, and logging rate no longer appear in Results (moved to Methods/setup)",
+    "interpretation-removed-from-results: 'which shows that', 'confirms our design choice', and the thermal-time-constant explanation are removed from Results (deleted or moved to a Discussion)",
+    "aggregate-stats-only: the signed by-direction split (+2.8/-3.4 mm) is not the headline; the '14 of 16 runs converged' bookkeeping and the exclusion note are removed or replaced by aggregate absolute error",
+    "excuse-reframed: the 'was not available' excuse sentence is deleted or reframed without stating what the lab lacked",
+    "caption-fixed: the figure caption does not start with 'The', does not say 'See text for details', and decodes what is plotted",
+    "no-contractions: \"it's\" and any other contractions are removed"
+  ]
+}

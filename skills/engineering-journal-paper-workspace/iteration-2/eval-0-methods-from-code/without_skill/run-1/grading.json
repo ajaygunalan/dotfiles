@@ -1,0 +1,51 @@
+{
+  "run_id": "methods-from-code-without_skill",
+  "expectations": [
+    {
+      "text": "no-code-identifiers-in-prose: the LaTeX contains none of the source identifiers baro_vision, baro_only, send_velocity_setpoint, mavsdk, ZMQ, EMA_ALPHA, KP_XY, HSV_LOWER, _poll_tag as prose (an academically renamed equivalent must be used)",
+      "evidence": "grep for all nine identifiers returns no matches. Academic equivalents are used: 'exponential moving average', 'local publish--subscribe transport', 'visually servoed configuration', 'altitude-only baseline'. The italic mode labels '(\\textit{vision})' and '(\\textit{baro})' are shortened configuration names, but the literal identifiers are absent and full academic names are given alongside them.",
+      "passed": true
+    },
+    {
+      "text": "modes-become-named-controllers: the two config modes appear as two academically named controllers/conditions that serve as the experimental variable of the comparison",
+      "evidence": "'Two controller configurations were compared. The proposed configuration (\\textit{vision}) uses the visually servoed law of \\eqref{eq:pd} with the gated descent described above. The baseline configuration (\\textit{baro}) disables the visual channel and commands an open-loop descent at $v^{\\max}_{z}$ ... Both configurations share the same altitude estimator, setpoint rate, and airframe, so the comparison isolates the visual channel.'",
+      "passed": true
+    },
+    {
+      "text": "tuning-values-omitted: numeric tuning values of supporting components (EMA coefficient, PD gains, complementary-filter time constant, HSV bounds, retry cap, image-center pixels, pixel gate radius) do NOT appear in running prose; components are named with at most one physical-reason sentence; values that legitimately appear are experimental conditions (platform speed, tag size, N, camera/control rates used as an argument) - a compact parameter table is tolerated but not required, and internal constants (HSV bounds, retry cap, image center) must appear nowhere at all",
+      "evidence": "The prose half of the assertion holds - grep confirms 0.35, 0.9, 0.15, 40 px and 0.8 s appear only inside Table~\\ref{tab:params}, never in running text, and the image center is symbolic ($\\mathbf{p}_c$) with the HSV bounds absent. But the 'nowhere at all' clause fails: the parameter table lists 'Consecutive-miss limit & $n_{\\max}$ & 3', which is the retry cap (MAX_CONSECUTIVE_MISSES = 3) - an internal recovery constant the assertion requires to appear nowhere. The table also carries the full tuning inventory (13 rows including $\\alpha$, $K_p$, $K_d$, $r_g$, $\\tau$), which the assertion tolerates but does not prefer; the retry-cap row is what makes this a fail.",
+      "passed": false
+    },
+    {
+      "text": "rate-mismatch-as-argument: the camera-rate vs control-rate mismatch (8 Hz vs 50 Hz) is stated as the reason for the smoothing/hold design (a number carrying an argument), not as bare spec inventory",
+      "evidence": "'Detections arrive at \\SI{8}{\\hertz} while setpoints are streamed at \\SI{50}{\\hertz}, so the controller does not consume detections synchronously', followed by 'the smoothed estimate is held between detections, which both attenuates detector jitter and supplies a value at every control cycle', and later 'Differentiating the \\SI{8}{\\hertz} image signal would amplify detector noise at the \\SI{50}{\\hertz} setpoint rate, whereas the onboard velocity estimate is already available at full rate.' The rates are also duplicated as bare rows in Table I, but the argumentative use is present and explicit.",
+      "passed": true
+    },
+    {
+      "text": "results-evidence-only: the Results section contains no protocol (placement, operator actions, logging) and no interpretation phrases such as 'which shows that' / 'demonstrates that' / 'confirms'",
+      "evidence": "None of the named phrases appear, but Results repeatedly carries interpretation and restated method: 'The baseline failures are consistent with its dispersion: a mean of \\SI{187}{\\milli\\meter} with a standard deviation of \\SI{92}{\\milli\\meter} places the deck edge slightly beyond one standard deviation of the baseline distribution.' and 'This follows from the descent gate: vertical motion is suspended whenever the lateral error leaves the gate radius, so the duration of a landing depends on how often the platform motion pushes the alignment out of tolerance, whereas the open-loop baseline descends at a fixed rate irrespective of alignment.' Also 'The confidence interval excludes zero over its full width and its lower bound alone is a third of the deck radius.' These are Discussion claims about why the numbers came out as they did.",
+      "passed": false
+    },
+    {
+      "text": "aggregate-headline-stats: the headline accuracy is aggregate mean±SD touchdown offset; the downwind/upwind direction split is not reported as a headline, and per-trial dropout bookkeeping is not reported as a statistic",
+      "evidence": "The headline is correct ('$46 \\pm 18$' mm against '$187 \\pm 92$' mm), but the direction split is promoted to its own Results heading, '\\subsection{Sensitivity to Wind Heading}', reporting '$41 \\pm \\SI{15}{\\milli\\meter}$ downwind and $52 \\pm \\SI{20}{\\milli\\meter}$ upwind', and is additionally pre-announced in the Statistical Analysis subsection. A further heading, '\\subsection{Behavior Under Detection Dropout}', elevates single-trial dropout bookkeeping to the same structural level as the primary result.",
+      "passed": false
+    },
+    {
+      "text": "quantified-comparison: the comparison between modes is quantified (paired difference with CI, ratio, or percent), not stated as 'better'",
+      "evidence": "'The paired mean difference was \\SI{141}{\\milli\\meter}, \\SI{95}{\\percent} CI $[98, 184]$~mm, $p = 0.0002$.' Also 'the baseline standard deviation is five times that of the visual configuration (\\SI{92}{\\milli\\meter} against \\SI{18}{\\milli\\meter})' and a success-rate contrast of '\\SI{100}{\\percent} against \\SI{75}{\\percent}'.",
+      "passed": true
+    },
+    {
+      "text": "ieee-mechanics: no contractions, no prose semicolons, numerals used for numbers 10 and above",
+      "evidence": "Three prose semicolons joining independent clauses: 'relying on altitude estimation alone; it represents landing without platform feedback' (line 100), 'reported as a proportion of trials; no inferential test is applied to it' (line 122), and 'relative to the prevailing wind; that split is reported descriptively only' (line 124). Numbers 10 and above are spelled out in six places: 'Twelve landings were flown', 'over the twelve trials of each configuration', 'as twelve trials per configuration do not support one', 'All twelve visually servoed landings', 'Three of twelve baseline landings', and the caption 'Over Twelve Trials Per Configuration'. No contractions found.",
+      "passed": false
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 4,
+    "total": 8,
+    "pass_rate": 0.5
+  }
+}

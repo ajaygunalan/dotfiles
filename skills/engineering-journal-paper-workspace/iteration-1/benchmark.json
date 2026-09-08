@@ -1,0 +1,316 @@
+{
+  "metadata": {
+    "skill_name": "engineering-journal-paper",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-08-05T00:27:07Z",
+    "evals_run": [
+      0,
+      1
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "no-code-identifiers-in-prose: the LaTeX contains none of the source identifiers baro_vision, baro_only, send_velocity_setpoint, mavsdk, ZMQ, EMA_ALPHA, KP_XY, HSV_LOWER, _poll_tag as prose (an academically renamed equivalent must be used)",
+          "passed": true,
+          "evidence": "grep -nE 'baro_vision|baro_only|send_velocity_setpoint|mavsdk|ZMQ|EMA_ALPHA|KP_XY|HSV|_poll_tag' returns no matches anywhere in the file. Renamed equivalents used throughout: 'vision-servoed controller', 'open-loop controller', 'exponential moving average filter', 'proportional gain $k_{p}$'."
+        },
+        {
+          "text": "modes-become-named-controllers: the two config modes appear as two academically named controllers/conditions that serve as the experimental variable of the comparison",
+          "passed": true,
+          "evidence": "Subsection 'Baseline Controller': 'The \\emph{vision-servoed controller} is the system of (1)-(4). The \\emph{open-loop controller} commands a constant descent ... The two controllers share the vehicle, the flight-controller interface, the command rate, and the initial hover pose, and differ only in whether the marker measurement enters the command.'"
+        },
+        {
+          "text": "constants-tabled-not-prosed: gains, velocity limits, and thresholds appear in a parameter table (symbol/description/value), and internal implementation constants (EMA coefficient, HSV bounds, retry cap, image center pixels) appear nowhere",
+          "passed": true,
+          "evidence": "Table~\\ref{tab:params} has columns 'Symbol & Description & Value' listing k_p 0.9, k_d 0.15, v_xy 1.2, v_z 0.5, rho_g 40 px, h_f 0.35 m, v_f 0.25, tau 0.8, tau_h 0.4. Grep finds no 0.35 EMA coefficient (the only 0.35 is flare altitude), no HSV bounds, no consecutive-miss cap, and no 320/240 image-center pixels; the principal point is referred to symbolically as $\\mathbf{c}=(u_c,v_c)$."
+        },
+        {
+          "text": "rate-mismatch-as-argument: the camera-rate vs control-rate mismatch (8 Hz vs 50 Hz) is stated as the reason for the smoothing/hold design (a number carrying an argument), not as bare spec inventory",
+          "passed": true,
+          "evidence": "'Velocity setpoints are streamed to the flight controller at $f_{c} = 50$~Hz, whereas marker detections arrive at $f_{d} = 8$~Hz. Most control cycles therefore execute without a new measurement, and the smoothed detection is held between frames.' The rates are then used to motivate the half-amplitude decay hold."
+        },
+        {
+          "text": "results-evidence-only: the Results section contains no protocol (placement, operator actions, logging) and no interpretation phrases such as 'which shows that' / 'demonstrates that' / 'confirms'",
+          "passed": true,
+          "evidence": "Results (lines 201-251) contains only measured quantities and comparisons: offsets, deck-radius outcomes, descent durations, and one dropout observation. Grep for 'which shows that|demonstrates that|confirms|suggests that|proves' returns no matches. Protocol (trial count, hover start, motion-capture ground truth) lives in the Methods 'Experimental Setup' subsection."
+        },
+        {
+          "text": "aggregate-headline-stats: the headline accuracy is aggregate mean\u00b1SD touchdown offset; the downwind/upwind direction split is not reported as a headline, and per-trial dropout bookkeeping is not reported as a statistic",
+          "passed": true,
+          "evidence": "Opening Results sentence: 'The vision-servoed controller landed with a touchdown offset of $46 \\pm 18$~mm, against $187 \\pm 92$~mm for the open-loop controller.' The downwind/upwind split (41/52 mm in the lab notes) appears nowhere in the file. The dropout appears as a single narrative sentence about the hold engaging and recovering, with no rate or per-trial statistic derived from it."
+        },
+        {
+          "text": "quantified-comparison: the comparison between modes is quantified (paired difference with CI, ratio, or percent), not stated as 'better'",
+          "passed": true,
+          "evidence": "'The reduction is 75\\%, or a factor of 4.1. The paired mean difference is 141~mm with a 95\\% confidence interval of [98, 184]~mm ($p = 2 \\times 10^{-4}$). The standard deviation of the offset falls by a factor of 5.1'; Table II carries a Change column '$-141$ [$-184$, $-98$]'."
+        },
+        {
+          "text": "ieee-mechanics: no contractions, no prose semicolons, numerals used for numbers 10 and above",
+          "passed": true,
+          "evidence": "No contractions found. The only semicolon in the file is inside a LaTeX comment on line 4 ('% drawn; each figure environment ...'), not in prose. Numbers 10 and above are numerals ('All 12 vision-servoed landings', 'Nine of the 12 open-loop landings', '$N = 12$'); spelled-out 'Nine' is below the numeral threshold and correct."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 10,
+        "failed": 0,
+        "total": 10,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "chronology-removed: the 'four steps ... First, Second, Third, Fourth' pipeline narration is gone, replaced by argument-ordered prose",
+          "passed": true,
+          "evidence": "No 'First,/Second,/Third,/Fourth' in the manuscript body (the only hit is the trailing change-log comment describing the removal). Methods now opens with the claim and the control law: 'The crawler holds a commanded standoff $d_{\\mathrm{ref}}$ from the pipe wall while traversing the pipe', then the PD law, then the estimator introduced as the source of $\\hat{d}$."
+        },
+        {
+          "text": "code-identifiers-removed: wall_follow, ctrl_mode, and set_track_velocity() no longer appear in prose",
+          "passed": true,
+          "evidence": "grep finds these three strings only on lines 135-136, inside the '% What changed, and why' LaTeX comment block that documents their removal. Manuscript prose says instead: 'streamed to the drive controller at $f_{\\mathrm{ctrl}} = 100$~Hz through a real-time motor-control interface.'"
+        },
+        {
+          "text": "config-inventory-removed: the EKF Q/R/P0 numeric listing, the 40-iteration cap, and the divergence-check interval are deleted or reduced to at most a symbolic/tabled treatment with a physical-reason sentence",
+          "passed": true,
+          "evidence": "P0, the 40-iteration cap, and the every-5-cycles divergence check appear nowhere in the body (only in the change-log comment noting their deletion). Q and R are reduced to symbols in prose ('Process and measurement noise covariances $\\mathbf{Q}$ and $\\mathbf{R}$ are given in Table~\\ref{tab:params}') with a physical-reason sentence for the filtering: 'to reject sensor noise, which at this standoff is comparable to the tolerance the controller must hold.'"
+        },
+        {
+          "text": "defensive-completeness-deleted: the unused-simulation-mode sentence, the 'inspired by impedance control but not formally' assert-retract pair, and the 'is described in Section IV' signpost are all deleted",
+          "passed": true,
+          "evidence": "grep for 'simulation mode|impedance|Section IV' matches only lines 143-145 of the change-log comment ('Deleted: the unused simulation mode ...; the assert-retract sentence about impedance control; the signpost sentence pointing at Section IV'). None of the three appears in the manuscript text."
+        },
+        {
+          "text": "protocol-evicted-from-results: run count, placement, operator start, traverse speed, and logging rate no longer appear in Results (moved to Methods/setup)",
+          "passed": true,
+          "evidence": "All five moved into the new Methods '\\subsection{Experimental Setup}': 'At the start of each run the crawler was placed at the pipe entrance and traversed the full length autonomously at 0.1~m/s. Wall distance was logged at $f_{\\mathrm{ctrl}}$ ... We performed 16 runs, alternating between the compensated and uncompensated controller'. The Results body reports only measured error, the paired difference, and the time course; the only count in Results is the figure caption's table-reading note 'over eight runs per controller'."
+        },
+        {
+          "text": "interpretation-removed-from-results: 'which shows that', 'confirms our design choice', and the thermal-time-constant explanation are removed from Results (deleted or moved to a Discussion)",
+          "passed": true,
+          "evidence": "grep for 'which shows that|confirms|thermal time constant' matches only the change-log comment (lines 154-156), which routes all three to the Discussion. Results states the time course as evidence without cause: 'Within the first 30~s the uncompensated controller held the lower error, by [x.x]~mm on average. Beyond 30~s its error grew for the remainder of the traverse.'"
+        },
+        {
+          "text": "aggregate-stats-only: the signed by-direction split (+2.8/-3.4 mm) is not the headline; the '14 of 16 runs converged' bookkeeping and the exclusion note are removed or replaced by aggregate absolute error",
+          "passed": true,
+          "evidence": "The clockwise/counterclockwise split and the 14-of-16 convergence bookkeeping appear nowhere in the body (only in the change-log comment recording their deletion). The metric is defined as an aggregate absolute quantity: 'The accuracy metric is the mean absolute standoff error $\\overline{|e|}$ over a run ... mean $\\pm$ standard deviation ... All runs enter the statistics.' Note the headline values are left as [x.x] placeholders because the draft's 3.1 mm was computed with the two runs excluded."
+        },
+        {
+          "text": "excuse-reframed: the 'was not available' excuse sentence is deleted or reframed without stating what the lab lacked",
+          "passed": true,
+          "evidence": "The sentence 'which was not available during the test campaign' is absent from the manuscript. The change-log comment proposes a Discussion reframing that drops the availability excuse and states scope instead: 'Evaluation was confined to clean pipe. Extending it to corroded pipe requires only access to a decommissioned line, not a change to the controller.'"
+        },
+        {
+          "text": "caption-fixed: the figure caption does not start with 'The', does not say 'See text for details', and decodes what is plotted",
+          "passed": true,
+          "evidence": "'\\caption{Absolute standoff error along the 12~m traverse for the compensated and uncompensated controllers. Solid lines are the mean across runs and shaded bands one standard deviation, over eight runs per controller. The dashed horizontal line marks the 5~mm standoff tolerance.}' \u2014 opens with 'Absolute', no 'See text for details', and every plotted element is decoded."
+        },
+        {
+          "text": "no-contractions: \"it's\" and any other contractions are removed",
+          "passed": true,
+          "evidence": "grep for contractions matches only line 174 of the change-log comment ('the contraction \"it\\'s\" is gone with the sentence that carried it'). No contraction remains in the manuscript text; the sentence that carried it ('it's checked for divergence every 5 cycles') was deleted outright."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 4,
+        "failed": 4,
+        "total": 8,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "no-code-identifiers-in-prose: the LaTeX contains none of the source identifiers baro_vision, baro_only, send_velocity_setpoint, mavsdk, ZMQ, EMA_ALPHA, KP_XY, HSV_LOWER, _poll_tag as prose (an academically renamed equivalent must be used)",
+          "passed": true,
+          "evidence": "grep for all nine identifiers returns no matches. Academic equivalents are used ('exponential moving average', 'local publish--subscribe transport', 'visually servoed configuration', 'altitude-only baseline'). Note the italic mode labels '(\\textit{vision})' and '(\\textit{baro})' are shortened config-mode names, but the literal identifiers are absent and full academic names are given alongside."
+        },
+        {
+          "text": "modes-become-named-controllers: the two config modes appear as two academically named controllers/conditions that serve as the experimental variable of the comparison",
+          "passed": true,
+          "evidence": "'The proposed configuration (\\textit{vision}) uses the visually servoed law ... The baseline configuration (\\textit{baro}) disables the visual channel and commands an open-loop descent ... Both configurations share the same altitude estimator, setpoint rate, and airframe, so the comparison isolates the visual channel.'"
+        },
+        {
+          "text": "constants-tabled-not-prosed: gains, velocity limits, and thresholds appear in a parameter table (symbol/description/value), and internal implementation constants (EMA coefficient, HSV bounds, retry cap, image center pixels) appear nowhere",
+          "passed": false,
+          "evidence": "The parameter table itself lists two of the forbidden internal constants: 'Smoothing coefficient & $\\alpha$ & 0.35' (the EMA coefficient) and 'Consecutive-miss limit & $n_{\\max}$ & 3' (the retry cap). The retry cap also appears in prose: 'If misses persist beyond $n_{\\max}$ consecutive cycles the supervisor reverts to \\textsc{search}.'"
+        },
+        {
+          "text": "rate-mismatch-as-argument: the camera-rate vs control-rate mismatch (8 Hz vs 50 Hz) is stated as the reason for the smoothing/hold design (a number carrying an argument), not as bare spec inventory",
+          "passed": true,
+          "evidence": "'Detections arrive at 8 Hz while setpoints are streamed at 50 Hz, so the controller does not consume detections synchronously' followed by 'the smoothed estimate is held between detections, which both attenuates detector jitter and supplies a value at every control cycle', and 'Differentiating the 8 Hz image signal would amplify detector noise at the 50 Hz setpoint rate'."
+        },
+        {
+          "text": "results-evidence-only: the Results section contains no protocol (placement, operator actions, logging) and no interpretation phrases such as 'which shows that' / 'demonstrates that' / 'confirms'",
+          "passed": false,
+          "evidence": "Results carries repeated interpretation and method: 'The baseline failures are consistent with its dispersion: a mean of 187 mm with a standard deviation of 92 mm places the deck edge slightly beyond one standard deviation of the baseline distribution.' and 'This follows from the descent gate: vertical motion is suspended whenever the lateral error leaves the gate radius, so the duration of a landing depends on how often the platform motion pushes the alignment out of tolerance.' Also 'The confidence interval excludes zero over its full width and its lower bound alone is a third of the deck radius.'"
+        },
+        {
+          "text": "aggregate-headline-stats: the headline accuracy is aggregate mean\u00b1SD touchdown offset; the downwind/upwind direction split is not reported as a headline, and per-trial dropout bookkeeping is not reported as a statistic",
+          "passed": false,
+          "evidence": "The headline is correct ('$46 \\pm 18$ mm against $187 \\pm 92$ mm'), but the direction split is promoted to its own Results heading, '\\subsection{Sensitivity to Wind Heading}', reporting '$41 \\pm 15$ mm downwind and $52 \\pm 20$ mm upwind'. A further heading '\\subsection{Behavior Under Detection Dropout}' elevates the single-trial dropout bookkeeping to the same structural level as the primary result."
+        },
+        {
+          "text": "quantified-comparison: the comparison between modes is quantified (paired difference with CI, ratio, or percent), not stated as 'better'",
+          "passed": true,
+          "evidence": "'The paired mean difference was 141 mm, 95\\% CI $[98, 184]$~mm, $p = 0.0002$'; also 'the baseline standard deviation is five times that of the visual configuration' and a success-rate comparison of 100\\% against 75\\%."
+        },
+        {
+          "text": "ieee-mechanics: no contractions, no prose semicolons, numerals used for numbers 10 and above",
+          "passed": false,
+          "evidence": "Three prose semicolons: line 100 'relying on altitude estimation alone; it represents landing without platform feedback', line 122 'reported as a proportion of trials; no inferential test is applied', line 124 'relative to the prevailing wind; that split is reported descriptively'. Numbers 10 and above are spelled out in six places: 'Twelve landings were flown', 'over the twelve trials', 'as twelve trials per configuration', 'All twelve visually servoed landings', 'Three of twelve baseline landings', and the caption 'Over Twelve Trials Per Configuration'. No contractions found."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 5,
+        "failed": 5,
+        "total": 10,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "chronology-removed: the 'four steps ... First, Second, Third, Fourth' pipeline narration is gone, replaced by argument-ordered prose",
+          "passed": true,
+          "evidence": "No 'First,/Second,/Third,/Fourth' anywhere in the file. Methods opens with the function rather than the loop: 'The crawler holds a commanded standoff from the pipe wall using a single control law that runs at 100~Hz', and the filtering step now carries a physical reason ('Because the raw range signal carries high-frequency noise from specular returns on the pipe wall')."
+        },
+        {
+          "text": "code-identifiers-removed: wall_follow, ctrl_mode, and set_track_velocity() no longer appear in prose",
+          "passed": true,
+          "evidence": "grep -nE 'wall_follow|ctrl_mode|set_track_velocity' returns no matches. Replaced by role descriptions: 'A proportional-derivative law maps the smoothed standoff error to a lateral velocity correction' and 'issued to the motor driver at the same 100~Hz rate'."
+        },
+        {
+          "text": "config-inventory-removed: the EKF Q/R/P0 numeric listing, the 40-iteration cap, and the divergence-check interval are deleted or reduced to at most a symbolic/tabled treatment with a physical-reason sentence",
+          "passed": true,
+          "evidence": "The 40-iteration cap and the every-5-cycles divergence check are deleted. Q, R, and P0 are moved out of prose into Table~\\ref{tab:params} rows ('Process noise covariance & $\\mathbf{Q}$', 'Measurement noise covariance & $\\mathbf{R}$', 'Initial state covariance & $\\mathbf{P}_0$ & $100\\,\\mathbf{I}$'), and a physical-reason sentence is supplied: 'The measurement covariance is set roughly two orders of magnitude above the process covariance, reflecting that the time-of-flight returns, not the track odometry, are the dominant error source.' The assertion permits a tabled treatment, so this passes, though P0 and the filter coefficient alpha=0.2 are retained inventory the with_skill run dropped."
+        },
+        {
+          "text": "defensive-completeness-deleted: the unused-simulation-mode sentence, the 'inspired by impedance control but not formally' assert-retract pair, and the 'is described in Section IV' signpost are all deleted",
+          "passed": false,
+          "evidence": "The simulation-mode sentence and the Section IV signpost are gone, but the impedance assert-retract survives in rewritten form as its own paragraph: 'The law is proportional-derivative rather than impedance-based: the crawler does not sense contact force, so the wall interaction is regulated in position rather than in mechanical impedance.' The assertion requires all three to be deleted."
+        },
+        {
+          "text": "protocol-evicted-from-results: run count, placement, operator start, traverse speed, and logging rate no longer appear in Results (moved to Methods/setup)",
+          "passed": false,
+          "evidence": "The Results section still opens with the protocol: 'The crawler completed 16 autonomous traverses of a 12~m test pipe at 0.1~m/s, logging wall distance at 100~Hz. Runs alternated between the compensated and the uncompensated controller, giving 8 paired runs per condition.' Run count, traverse speed, logging rate, and alternation all remain in Results; no Experimental Setup subsection was created in Methods."
+        },
+        {
+          "text": "interpretation-removed-from-results: 'which shows that', 'confirms our design choice', and the thermal-time-constant explanation are removed from Results (deleted or moved to a Discussion)",
+          "passed": false,
+          "evidence": "'which shows that' and 'confirms our design choice' were moved to the co-author note, but the thermal-time-constant explanation remains in Results as the closing clause of the main results paragraph: 'The onset of that drift coincides with the thermal time constant of the sensor mount.'"
+        },
+        {
+          "text": "aggregate-stats-only: the signed by-direction split (+2.8/-3.4 mm) is not the headline; the '14 of 16 runs converged' bookkeeping and the exclusion note are removed or replaced by aggregate absolute error",
+          "passed": false,
+          "evidence": "Both survive in Results. Bookkeeping and exclusion: 'Fourteen of the 16 runs entered the 5~mm error band before the pipe midpoint. The two runs that did not enter the band are excluded from the 3.1~mm aggregate; both occurred under the uncompensated controller.' Direction split retained with the sign preserved: 'clockwise runs gave $2.8 \\pm 1.1$~mm and counterclockwise runs gave $3.4 \\pm 1.6$~mm, with the sign of the offset reversing between the two directions.'"
+        },
+        {
+          "text": "excuse-reframed: the 'was not available' excuse sentence is deleted or reframed without stating what the lab lacked",
+          "passed": false,
+          "evidence": "The sentence is preserved rather than deleted or reframed, in a comment block headed 'RELOCATED FROM RESULTS -- paste into Discussion, do not lose': 'Validation in a corroded section awaits access to the decommissioned line, which was unavailable during this campaign.' It still states what the lab lacked."
+        },
+        {
+          "text": "caption-fixed: the figure caption does not start with 'The', does not say 'See text for details', and decodes what is plotted",
+          "passed": true,
+          "evidence": "'\\caption{Wall-distance error over a 12~m traverse for the compensated (thermal reference at the front bulkhead) and uncompensated controllers. Each trace is one of 16 runs at 0.1~m/s. Shaded band marks the 5~mm error tolerance.}' \u2014 opens with 'Wall-distance', no 'See text for details', and traces and shaded band are both decoded."
+        },
+        {
+          "text": "no-contractions: \"it's\" and any other contractions are removed",
+          "passed": true,
+          "evidence": "grep for it's/don't/doesn't/isn't/didn't/can't/won't/that's and others returns no matches; the sentence carrying 'it's checked for divergence every 5 cycles' was removed with the divergence check."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.5,
+        "stddev": 0.0,
+        "min": 0.5,
+        "max": 0.5
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.50",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

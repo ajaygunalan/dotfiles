@@ -1,0 +1,175 @@
+% Revised Methods and Results.
+% Structural changes are summarized at the end of this file.
+% Bracketed bold placeholders mark numbers the draft never reported; they must be
+% filled from the logs before submission. Requires the booktabs package for Table I.
+
+\section{Methods}
+
+\subsection{Wall-Following Control}
+
+The crawler holds a commanded standoff $d_{\mathrm{ref}}$ from the pipe wall while
+traversing the pipe. Let the standoff error be
+%
+\begin{equation}
+e(t) = \hat{d}(t) - d_{\mathrm{ref}},
+\label{eq:error}
+\end{equation}
+%
+where $\hat{d}(t)$ is the estimated distance from the crawler body to the pipe wall and
+$d_{\mathrm{ref}}$ is the commanded standoff. The lateral correction that drives this
+error to zero is given by
+%
+\begin{equation}
+u(t) = \mathrm{sat}\!\left(k_p\, e(t) + k_d\, \dot{e}(t),\; u_{\max}\right),
+\label{eq:pd}
+\end{equation}
+%
+where $k_p$ and $k_d$ are the proportional and derivative gains,
+$\mathrm{sat}(x, u_{\max}) = \min(\max(x, -u_{\max}), u_{\max})$ saturates the
+correction, and $u_{\max}$ bounds the lateral speed the tracks may command. The
+saturation keeps a large transient error from commanding a lateral rate that would
+break track traction against the pipe wall. The correction enters the two track
+velocities differentially, which are streamed to the drive controller at
+$f_{\mathrm{ctrl}} = 100$~Hz through a real-time motor-control interface. Parameter
+values are listed in Table~\ref{tab:params}.
+
+The distance estimate $\hat{d}$ comes from a three-state extended Kalman filter driven
+by two time-of-flight range measurements of the pipe wall, sampled at
+$f_{\mathrm{ctrl}}$. The raw ranges are low-pass filtered before the update to reject
+sensor noise, which at this standoff is comparable to the tolerance the controller must
+hold. Process and measurement noise covariances $\mathbf{Q}$ and $\mathbf{R}$ are given
+in Table~\ref{tab:params}.
+% AUTHOR: the draft describes both a single-pole IIR pre-filter and an EKF without
+% stating which one supplies the distance the PD law reads. Confirm against the source
+% and, if the EKF output is unused by control, delete it from the paper entirely.
+% AUTHOR: the three-state EKF and two measurements are inferred from the dimensions of
+% Q and R in the draft. State the state vector explicitly if that inference is wrong.
+
+We evaluate two controllers that differ only in how the range measurement is corrected
+for sensor temperature. The \emph{compensated} controller corrects each range against a
+reference sensor mounted at the front bulkhead. The \emph{uncompensated} controller uses
+the raw range. Both share the estimator and the control law of
+(\ref{eq:error})--(\ref{eq:pd}), so any difference between them is attributable to the
+compensation alone.
+% AUTHOR: the draft never states how the front-bulkhead reference sensor enters the
+% range correction. One sentence of physical mechanism is needed here, otherwise the
+% Results claim about compensation has no described cause.
+
+\subsection{Experimental Setup}
+
+Runs were conducted in a 12~m test pipe. At the start of each run the crawler was placed
+at the pipe entrance and traversed the full length autonomously at 0.1~m/s. Wall
+distance was logged at $f_{\mathrm{ctrl}}$ for the entire traverse, giving the
+per-sample error of (\ref{eq:error}) used in all reported statistics.
+
+We performed 16 runs, alternating between the compensated and uncompensated controller
+so that any drift in pipe or ambient conditions over the campaign acted on both
+controllers equally. The alternation yields eight paired runs.
+
+\begin{table}[t]
+\caption{Control and Estimation Parameters}
+\label{tab:params}
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llr}
+\toprule
+Symbol & Description & Value \\
+\midrule
+$d_{\mathrm{ref}}$ & Commanded wall standoff (mm) & \textbf{[value]} \\
+$k_p$ & Proportional gain, lateral correction (s$^{-1}$) & 2.1 \\
+$k_d$ & Derivative gain, lateral correction (dimensionless) & 0.35 \\
+$u_{\max}$ & Saturation limit on lateral correction (m/s) & 0.15 \\
+$f_{\mathrm{ctrl}}$ & Sensing and command rate (Hz) & 100 \\
+$\mathbf{Q}$ & Estimator process-noise covariance & $\mathrm{diag}(10^{-2}, 10^{-2}, 10^{-3})$ \\
+$\mathbf{R}$ & Estimator measurement-noise covariance & $\mathrm{diag}(4.0, 4.0)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Metrics and Statistical Analysis}
+
+The accuracy metric is the mean absolute standoff error $\overline{|e|}$ over a run.
+Across runs, each controller is summarized as mean $\pm$ standard deviation of
+$\overline{|e|}$. The two controllers are compared by the paired difference in
+$\overline{|e|}$ across the eight run pairs, reported as a magnitude with a 95\%
+confidence interval and tested with a paired $t$-test. All runs enter the statistics.
+% AUTHOR: the draft reported 3.1 mm after excluding two runs that stayed outside a 5 mm
+% band. Excluding the worst runs biases the headline metric, so all 16 runs must be
+% included and the aggregate recomputed. The paired difference, its confidence interval,
+% and the p-value were not in the draft and must be computed from the logs.
+
+\section{Results}
+
+The compensated controller held a mean absolute standoff error of
+\textbf{[x.x]}~$\pm$~\textbf{[x.x]}~mm across the 12~m traverse, against
+\textbf{[x.x]}~$\pm$~\textbf{[x.x]}~mm for the uncompensated controller
+(Fig.~\ref{fig:error}). The paired difference is \textbf{[x.x]}~mm, 95\% CI
+[\textbf{[x.x]}, \textbf{[x.x]}], a reduction of \textbf{[xx]}\%.
+% AUTHOR: fill from the recomputed all-runs aggregate. The draft's 3.1 mm excluded two
+% runs and reported no dispersion; the uncompensated aggregate was never reported at all,
+% so the paper currently states a comparison it does not quantify.
+
+The two controllers separate over the course of a traverse rather than uniformly
+(Fig.~\ref{fig:error}). Within the first 30~s the uncompensated controller held the
+lower error, by \textbf{[x.x]}~mm on average. Beyond 30~s its error grew for the
+remainder of the traverse, reaching \textbf{[x.x]}~mm at the pipe exit, while the
+compensated controller stayed within \textbf{[x.x]}~mm of its initial level.
+
+\begin{figure}[t]
+% AUTHOR: verify the line styles named below against the plotted figure.
+\caption{Absolute standoff error along the 12~m traverse for the compensated and
+uncompensated controllers. Solid lines are the mean across runs and shaded bands one
+standard deviation, over eight runs per controller. The dashed horizontal line marks the
+5~mm standoff tolerance.}
+\label{fig:error}
+\end{figure}
+
+% ---------------------------------------------------------------------------
+% What changed, and why
+%
+% METHODS
+% 1. The four-step "First/Second/Third/Fourth" cycle narration was a transcription of the
+%    software loop. Replaced with the control law itself first and the estimator second,
+%    as a supporting module that feeds it.
+% 2. Code identifiers removed: wall_follow, ctrl_mode="wall_follow", and the vendor
+%    set_track_velocity() call, which is now the capability by role ("streamed to the
+%    drive controller at 100 Hz through a real-time motor-control interface" -- add a
+%    citation to the interface if it has a literature presence).
+% 3. Numeric constants triaged: gains, saturation limit, rate, Q and R moved to
+%    Table I as symbol/description/value; the IIR coefficient alpha=0.2, the 40-iteration
+%    cap, the every-5-cycles divergence check, and P0 = 100*I were deleted as internal
+%    implementation constants that support no claim.
+% 4. Deleted: the unused simulation mode (it produced none of the reported results); the
+%    assert-retract sentence about impedance control; the signpost sentence pointing at
+%    Section IV.
+% 5. Added: the two controllers as named experimental variables, and the protocol,
+%    metric definition, and statistical analysis moved here out of Results.
+% 6. Added one physical reason each for the saturation and the estimator, per the rule
+%    that supporting machinery gets a model name plus a reason, not a tuning dump.
+%
+% RESULTS
+% 7. The whole protocol paragraph (placement, operator start, traverse speed, logging,
+%    alternation) moved to Methods.
+% 8. Interpretation removed from Results: "which shows that the thermal compensation is
+%    effective", "confirms our design choice of placing the reference sensor at the front
+%    bulkhead", and "this matches the thermal time constant of the sensor mount" all
+%    belong in the Discussion, where they answer the Introduction's gap.
+% 9. The clockwise/counterclockwise signed split was dropped. Direction is not the
+%    finding here, and signed per-direction means obscure the aggregate accuracy claim.
+% 10. Convergence bookkeeping ("14 of 16 runs converged ... the two non-converging runs
+%     are excluded") removed. The exclusion is also a validity problem, not a style one:
+%     see the AUTHOR note in Methods.
+% 11. "was better" replaced by a quantified difference; every comparison now carries a
+%     magnitude.
+% 12. The corroded-pipe sentence was removed from Results. It is a limitation, and it
+%     stated what the lab lacked. Reframed for the Discussion:
+%     "Evaluation was confined to clean pipe. Extending it to corroded pipe requires only
+%     access to a decommissioned line, not a change to the controller."
+% 13. Figure caption rewritten to be self-contained, not to open with "The", and to
+%     decode the mean lines, the SD bands, the run count, and the tolerance line.
+%     The 5 mm tolerance line needs a stated source (specification or requirement);
+%     a threshold line drawn without justification invites a reviewer question.
+% 14. "sixteen runs" -> "16 runs" (IEEE style uses numerals for 10 and above), and the
+%     contraction "it's" is gone with the sentence that carried it.
+% ---------------------------------------------------------------------------

@@ -1,0 +1,61 @@
+{
+  "run_id": "fix-report-style-draft-without_skill",
+  "expectations": [
+    {
+      "text": "chronology-removed: the 'four steps ... First, Second, Third, Fourth' pipeline narration is gone, replaced by argument-ordered prose",
+      "passed": true,
+      "evidence": "No 'First,/Second,/Third,/Fourth' anywhere in the file. Methods opens with the function rather than the loop: 'The crawler holds a commanded standoff from the pipe wall using a single control law that runs at 100~Hz', and the filtering step now carries a physical reason ('Because the raw range signal carries high-frequency noise from specular returns on the pipe wall')."
+    },
+    {
+      "text": "code-identifiers-removed: wall_follow, ctrl_mode, and set_track_velocity() no longer appear in prose",
+      "passed": true,
+      "evidence": "grep -nE 'wall_follow|ctrl_mode|set_track_velocity' returns no matches. Replaced by role descriptions: 'A proportional-derivative law maps the smoothed standoff error to a lateral velocity correction' and 'issued to the motor driver at the same 100~Hz rate'."
+    },
+    {
+      "text": "config-inventory-removed: the EKF Q/R/P0 numeric listing, the 40-iteration cap, and the divergence-check interval are deleted or reduced to at most a symbolic/tabled treatment with a physical-reason sentence",
+      "passed": true,
+      "evidence": "The 40-iteration cap and the every-5-cycles divergence check are deleted. Q, R, and P0 are moved out of prose into Table~\\ref{tab:params} rows ('Process noise covariance & $\\mathbf{Q}$', 'Measurement noise covariance & $\\mathbf{R}$', 'Initial state covariance & $\\mathbf{P}_0$ & $100\\,\\mathbf{I}$'), and a physical-reason sentence is supplied: 'The measurement covariance is set roughly two orders of magnitude above the process covariance, reflecting that the time-of-flight returns, not the track odometry, are the dominant error source.' The assertion permits a tabled treatment, so this passes, though P0 and the filter coefficient alpha=0.2 are retained inventory the with_skill run dropped."
+    },
+    {
+      "text": "defensive-completeness-deleted: the unused-simulation-mode sentence, the 'inspired by impedance control but not formally' assert-retract pair, and the 'is described in Section IV' signpost are all deleted",
+      "passed": false,
+      "evidence": "The simulation-mode sentence and the Section IV signpost are gone, but the impedance assert-retract survives in rewritten form as its own paragraph: 'The law is proportional-derivative rather than impedance-based: the crawler does not sense contact force, so the wall interaction is regulated in position rather than in mechanical impedance.' The assertion requires all three to be deleted."
+    },
+    {
+      "text": "protocol-evicted-from-results: run count, placement, operator start, traverse speed, and logging rate no longer appear in Results (moved to Methods/setup)",
+      "passed": false,
+      "evidence": "The Results section still opens with the protocol: 'The crawler completed 16 autonomous traverses of a 12~m test pipe at 0.1~m/s, logging wall distance at 100~Hz. Runs alternated between the compensated and the uncompensated controller, giving 8 paired runs per condition.' Run count, traverse speed, logging rate, and alternation all remain in Results; no Experimental Setup subsection was created in Methods."
+    },
+    {
+      "text": "interpretation-removed-from-results: 'which shows that', 'confirms our design choice', and the thermal-time-constant explanation are removed from Results (deleted or moved to a Discussion)",
+      "passed": false,
+      "evidence": "'which shows that' and 'confirms our design choice' were moved to the co-author note, but the thermal-time-constant explanation remains in Results as the closing clause of the main results paragraph: 'The onset of that drift coincides with the thermal time constant of the sensor mount.'"
+    },
+    {
+      "text": "aggregate-stats-only: the signed by-direction split (+2.8/-3.4 mm) is not the headline; the '14 of 16 runs converged' bookkeeping and the exclusion note are removed or replaced by aggregate absolute error",
+      "passed": false,
+      "evidence": "Both survive in Results. Bookkeeping and exclusion: 'Fourteen of the 16 runs entered the 5~mm error band before the pipe midpoint. The two runs that did not enter the band are excluded from the 3.1~mm aggregate; both occurred under the uncompensated controller.' Direction split retained with the sign preserved: 'clockwise runs gave $2.8 \\pm 1.1$~mm and counterclockwise runs gave $3.4 \\pm 1.6$~mm, with the sign of the offset reversing between the two directions.'"
+    },
+    {
+      "text": "excuse-reframed: the 'was not available' excuse sentence is deleted or reframed without stating what the lab lacked",
+      "passed": false,
+      "evidence": "The sentence is preserved rather than deleted or reframed, in a comment block headed 'RELOCATED FROM RESULTS -- paste into Discussion, do not lose': 'Validation in a corroded section awaits access to the decommissioned line, which was unavailable during this campaign.' It still states what the lab lacked."
+    },
+    {
+      "text": "caption-fixed: the figure caption does not start with 'The', does not say 'See text for details', and decodes what is plotted",
+      "passed": true,
+      "evidence": "'\\caption{Wall-distance error over a 12~m traverse for the compensated (thermal reference at the front bulkhead) and uncompensated controllers. Each trace is one of 16 runs at 0.1~m/s. Shaded band marks the 5~mm error tolerance.}' \u2014 opens with 'Wall-distance', no 'See text for details', and traces and shaded band are both decoded."
+    },
+    {
+      "text": "no-contractions: \"it's\" and any other contractions are removed",
+      "passed": true,
+      "evidence": "grep for it's/don't/doesn't/isn't/didn't/can't/won't/that's and others returns no matches; the sentence carrying 'it's checked for divergence every 5 cycles' was removed with the divergence check."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 5,
+    "total": 10,
+    "pass_rate": 0.5
+  }
+}

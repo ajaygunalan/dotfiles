@@ -1,0 +1,51 @@
+{
+  "run_id": "methods-from-code-with_skill",
+  "expectations": [
+    {
+      "text": "no-code-identifiers-in-prose: the LaTeX contains none of the source identifiers baro_vision, baro_only, send_velocity_setpoint, mavsdk, ZMQ, EMA_ALPHA, KP_XY, HSV_LOWER, _poll_tag as prose (an academically renamed equivalent must be used)",
+      "evidence": "grep over all nine identifiers matches only two non-prose lines: a header comment 'Bibliography keys used: apriltag, px4, mavsdk' and the citation '~\\cite{px4,mavsdk}'. Both are bibliography keys, not prose. The prose uses academic equivalents throughout: 'the vehicle's onboard autopilot interface', 'vision-guided controller' / 'barometric controller', 'exponential moving average filter', 'a detector reports the marker center in pixel coordinates'. The publish--subscribe transport is not named at all.",
+      "passed": true
+    },
+    {
+      "text": "modes-become-named-controllers: the two config modes appear as two academically named controllers/conditions that serve as the experimental variable of the comparison",
+      "evidence": "Methods opens with 'We compare two landing controllers that differ only in how the horizontal velocity command is generated. The \\emph{vision-guided controller} servoes the vehicle on the image-plane position of a fiducial marker ... The \\emph{barometric controller} descends at a constant rate with no horizontal command and serves as the baseline.' A dedicated \\subsection{Baseline Controller} states the isolation argument: 'Comparing against it isolates the contribution of the image-plane guidance law, because the two controllers share the vehicle, the setpoint interface, and the cruise descent rate.' Both names carry through Results and Table I column headers.",
+      "passed": true
+    },
+    {
+      "text": "tuning-values-omitted: numeric tuning values of supporting components (EMA coefficient, PD gains, complementary-filter time constant, HSV bounds, retry cap, image-center pixels, pixel gate radius) do NOT appear in running prose; components are named with at most one physical-reason sentence; values that legitimately appear are experimental conditions (platform speed, tag size, N, camera/control rates used as an argument) - a compact parameter table is tolerated but not required, and internal constants (HSV bounds, retry cap, image center) must appear nowhere at all",
+      "evidence": "No parameter table exists and grep for 0.35, 0.9, 0.15, 0.6, 0.8, 40 px, 320, 240, and the HSV triples returns nothing anywhere in the file. Every tuning quantity is symbolic only ($k_p$, $k_d$, $\\tau$, $\\rho$, $h_f$, $v_h^{\\max}$, $v_z^{\\max}$, $v_z^{\\mathrm{td}}$), and the setup states 'Gains, filter constants, and the alignment radius were selected empirically for this airframe and camera'. The retry cap and image-center pixels are absent even as concepts-in-numbers: the miss counter is not mentioned and the image center appears only as the symbol $(u_0,v_0)$. Supporting components get exactly one physical-reason sentence each (damping on measured velocity 'would amplify detection noise at the camera frame rate'; decay hold 'keeps the vehicle drifting with the platform instead of stopping over ground'). Numeric values that do appear are experimental conditions only: 450 mm airframe, 640x480, 8 Hz, 50 Hz, 160 mm tag, 300 mm deck radius, 0.3 m/s, 120 Hz motion capture, 12 landings.",
+      "passed": true
+    },
+    {
+      "text": "rate-mismatch-as-argument: the camera-rate vs control-rate mismatch (8 Hz vs 50 Hz) is stated as the reason for the smoothing/hold design (a number carrying an argument), not as bare spec inventory",
+      "evidence": "'Detections arrive an order of magnitude more slowly than setpoints are streamed, so most control cycles execute without a new measurement. Two mechanisms bridge the gap. The detected marker center is smoothed by an exponential moving average filter, and between detections the controller continues to act on the most recent smoothed estimate.' The numbers themselves are held to the setup, where they are still framed as a contrast rather than inventory: 'The camera streams at \\SI{8}{\\hertz}, against a \\SI{50}{\\hertz} setpoint rate.' The same mismatch is reused to justify the damping term: 'Differentiating the image error would amplify detection noise at the camera frame rate, whereas the velocity estimate is available at the full setpoint rate.'",
+      "passed": true
+    },
+    {
+      "text": "results-evidence-only: the Results section contains no protocol (placement, operator actions, logging) and no interpretation phrases such as 'which shows that' / 'demonstrates that' / 'confirms'",
+      "evidence": "The Results section (lines 175-223) contains four paragraphs, all measurement: the offset comparison with its paired statistic, containment counts, descent duration, and the dropout observation. grep for 'which shows that|demonstrates|confirms|shows that|indicat|suggest|proves' returns no matches in the file. No placement, operator action, alternation scheme, or logging rate appears in Results; all of that sits in \\subsection{Experimental Setup} under Methods. The closest thing to a causal statement, 'Image guidance reduced the mean touchdown offset by roughly three quarters', is a measured change, not an inference about mechanism.",
+      "passed": true
+    },
+    {
+      "text": "aggregate-headline-stats: the headline accuracy is aggregate mean±SD touchdown offset; the downwind/upwind direction split is not reported as a headline, and per-trial dropout bookkeeping is not reported as a statistic",
+      "evidence": "The headline is the aggregate: '$46 \\pm 18$' against '$187 \\pm 92$' mm in Table I and in the opening Results paragraph. The downwind/upwind split (41 +/- 15 vs 52 +/- 20 mm in the lab notes) appears nowhere in the file - grep for 'downwind|upwind' matches only 'matched platform and wind conditions' in the Methods pairing sentence. The dropout is reported as a qualitative observation of the hold mechanism engaging ('In one vision-guided trial the marker was lost twice for longer than the detection timeout. The decay hold was applied on both occasions, and detections resumed before touchdown.'), not as a rate or a per-trial ledger, and it is not given a heading or a table row.",
+      "passed": true
+    },
+    {
+      "text": "quantified-comparison: the comparison between modes is quantified (paired difference with CI, ratio, or percent), not stated as 'better'",
+      "evidence": "'Image guidance reduced the mean touchdown offset by roughly three quarters, from \\SI{187}{\\milli\\meter} to \\SI{46}{\\milli\\meter} (paired difference \\SI{141}{\\milli\\meter}, \\SI{95}{\\percent} CI [98, 184], $p = 2\\times10^{-4}$). Trial-to-trial dispersion fell by a factor of 5.1, from a standard deviation of \\SI{92}{\\milli\\meter} to \\SI{18}{\\milli\\meter}.' Table I carries a signed difference column with the CI. The word 'better' does not appear. Both derived figures check out against the notes: (187-46)/187 = 0.754, and 92/18 = 5.11.",
+      "passed": true
+    },
+    {
+      "text": "ieee-mechanics: no contractions, no prose semicolons, numerals used for numbers 10 and above",
+      "evidence": "No contractions (grep over the usual set returns nothing). Every semicolon in the file is inside a post-equation 'where'-list separating variable definitions (lines 58-61, 84-86, 105-108), which is the IEEE convention for glossing symbols, not running prose; no semicolon joins two independent clauses of narrative text. Numbers 10 and above are always numerals - 'We flew 12 landings', 'the 12 paired landings', 'All 12 vision-guided landings', 'Three of the 12 barometric landings', '12/12', '9/12', and the two captions - and grep for spelled-out ten/twelve/sixteen/twenty and similar returns no matches. Sub-ten numbers at sentence start are spelled out ('Three of the 12'), which is also correct.",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  }
+}

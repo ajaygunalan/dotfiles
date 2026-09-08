@@ -1,0 +1,127 @@
+# Top institutions for robotics, manipulation, and AI research
+# Curated from CSRankings + RoboRanking, trimmed to ~100 strongest
+# retrieved: 2026-03-23, trimmed: 2026-03-26
+institution,source
+California Institute of Technology,university
+Carnegie Mellon University,university
+Columbia University,university
+Cornell University,university
+Duke University,university
+EPFL,university
+ETH Zurich,university
+Georgia Institute of Technology,university
+Harvard University,university
+Imperial College London,university
+Johns Hopkins University,university
+KAIST,university
+KTH Royal Institute of Technology,university
+Karlsruhe Institute of Technology,university
+Massachusetts Institute of Technology,university
+Max Planck Society,university
+McGill University,university
+Nanyang Technological University,university
+National University of Singapore,university
+New York University,university
+Northwestern University,university
+Oregon State University,university
+Osaka University,university
+Peking University,university
+Princeton University,university
+Purdue University,university
+RWTH Aachen University,university
+Rice University,university
+Sapienza University of Rome,university
+Seoul National University,university
+Shanghai Jiao Tong University,university
+Stanford University,university
+TU Darmstadt,university
+TU Delft,university
+Technical University of Munich,university
+Technion,university
+Tsinghua University,university
+University College London,university
+University of Alberta,university
+University of Bonn,university
+University of British Columbia,university
+University of California - Berkeley,university
+University of California - Los Angeles,university
+University of California - San Diego,university
+University of Cambridge,university
+University of Colorado Boulder,university
+University of Edinburgh,university
+University of Hong Kong,university
+University of Illinois at Urbana-Champaign,university
+University of Maryland - College Park,university
+University of Michigan,university
+University of Minnesota,university
+University of Montreal,university
+University of Oxford,university
+University of Pennsylvania,university
+University of Southern California,university
+University of Texas at Austin,university
+University of Tokyo,university
+University of Toronto,university
+University of Washington,university
+University of Wisconsin - Madison,university
+University of Zurich,university
+Virginia Tech,university
+Yale University,university
+Zhejiang University,university
+Brown University,university
+CUHK (SZ),university
+Chinese University of Hong Kong,university
+HKUST,university
+IISc Bangalore,university
+INRIA,university
+Italian Institute of Technology,university
+KU Leuven,university
+Ohio State University,university
+ShanghaiTech University,university
+Tohoku University,university
+University of Bristol,university
+University of Freiburg,university
+Scuola Superiore Sant'Anna,university
+University of Pisa,university
+French National Centre for Scientific Research (CNRS),university
+Ecole Polytechnique Federale de Lausanne,alias
+École Polytechnique Fédérale de Lausanne,alias
+Technische Universität München,alias
+Eidgenössische Technische Hochschule Zürich,alias
+Universität Freiburg,alias
+Albert-Ludwigs-Universitaet Freiburg,alias
+Universität Bonn,alias
+Istituto Italiano di Tecnologia,alias
+Institut National de Recherche en Informatique et en Automatique,alias
+Deutsches Zentrum für Luft- und Raumfahrt,alias
+Korea Advanced Institute of Science and Technology,alias
+Centre National de la Recherche Scientifique,alias
+MIT,alias
+Caltech,alias
+UCL,alias
+NTU Singapore,alias
+NUS,alias
+IIT,alias
+CNRS,alias
+Google,alias
+Google DeepMind,alias
+Max-Planck-Gesellschaft,alias
+Meta,alias
+Meta AI,alias
+Facebook,alias
+Allen Institute for AI (AI2),research-lab
+Amazon Science,research-lab
+Anthropic,research-lab
+DeepMind (Google DeepMind),research-lab
+Facebook AI Research (FAIR),research-lab
+Google Research,research-lab
+Honda Research Institute,research-lab
+Idiap Research Institute,research-lab
+Microsoft Research,research-lab
+Mitsubishi Electric Research Labs (MERL),research-lab
+NVIDIA Research,research-lab
+OpenAI,research-lab
+Samsung AI Center,research-lab
+Sony AI,research-lab
+Toyota Research Institute,research-lab
+DLR - Institute of Robotics and Mechatronics,research-lab
+RIKEN,research-lab

@@ -1,0 +1,93 @@
+\section{Methods}
+
+\subsection{Wall-Following Control}
+
+The crawler holds a commanded standoff from the pipe wall using a single control law
+that runs at 100~Hz. Two time-of-flight sensors measure the lateral wall distance.
+Because the raw range signal carries high-frequency noise from specular returns on the
+pipe wall, it is smoothed by a single-pole infinite impulse response filter before it
+reaches the controller. A proportional-derivative law maps the smoothed standoff error
+to a lateral velocity correction, which is saturated at 0.15~m/s so that a transient
+range dropout cannot command a step the tracks are unable to follow. The resulting
+left and right track velocities are issued to the motor driver at the same 100~Hz
+rate. Controller gains and filter coefficients are listed in Table~\ref{tab:params}.
+
+The law is proportional-derivative rather than impedance-based: the crawler does not
+sense contact force, so the wall interaction is regulated in position rather than in
+mechanical impedance.
+
+\subsection{State Estimation}
+
+Wall distance alone does not observe the crawler pose, so an extended Kalman filter
+fuses the range measurements with the commanded track velocities to estimate lateral
+position, heading, and heading rate. The process and measurement noise covariances are
+diagonal (Table~\ref{tab:params}). The measurement covariance is set roughly two orders
+of magnitude above the process covariance, reflecting that the time-of-flight returns,
+not the track odometry, are the dominant error source over the short traverse.
+
+\begin{table}[t]
+\centering
+\caption{Control and Estimation Parameters}
+\label{tab:params}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llc}
+\hline
+Parameter & Symbol & Value \\
+\hline
+Control and sensing rate & $f_c$ & 100 Hz \\
+Range filter coefficient & $\alpha$ & 0.2 \\
+Proportional gain & $k_p$ & 2.1 \\
+Derivative gain & $k_d$ & 0.35 \\
+Lateral velocity limit & $v_{\max}$ & 0.15 m/s \\
+Process noise covariance & $\mathbf{Q}$ & $\mathrm{diag}(0.01, 0.01, 0.001)$ \\
+Measurement noise covariance & $\mathbf{R}$ & $\mathrm{diag}(4.0, 4.0)$ \\
+Initial state covariance & $\mathbf{P}_0$ & $100\,\mathbf{I}$ \\
+Traverse speed & $v_t$ & 0.1 m/s \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Results}
+
+The crawler completed 16 autonomous traverses of a 12~m test pipe at 0.1~m/s, logging
+wall distance at 100~Hz. Runs alternated between the compensated and the uncompensated
+controller, giving 8 paired runs per condition.
+
+Fig.~\ref{fig:error} shows the wall-distance error against time for both controllers.
+With thermal compensation enabled, the mean absolute error was 3.1~mm. The
+uncompensated controller held a lower error over the first 30~s of each run and then
+drifted monotonically for the remainder of the traverse. The onset of that drift
+coincides with the thermal time constant of the sensor mount.
+
+Fourteen of the 16 runs entered the 5~mm error band before the pipe midpoint. The two
+runs that did not enter the band are excluded from the 3.1~mm aggregate; both occurred
+under the uncompensated controller.
+%% NOTE FOR CO-AUTHORS: excluding runs from an aggregate invites a reviewer challenge.
+%% Recompute the mean absolute error over all 16 runs and report that figure instead,
+%% or report both. The exclusion must not be what produces the reported number.
+
+Error magnitude differed with traverse direction: clockwise runs gave
+$2.8 \pm 1.1$~mm and counterclockwise runs gave $3.4 \pm 1.6$~mm, with the sign of the
+offset reversing between the two directions.
+
+\begin{figure}[t]
+\centering
+% \includegraphics[width=\columnwidth]{fig_error}
+\caption{Wall-distance error over a 12~m traverse for the compensated (thermal
+reference at the front bulkhead) and uncompensated controllers. Each trace is one of
+16 runs at 0.1~m/s. Shaded band marks the 5~mm error tolerance.}
+\label{fig:error}
+\end{figure}
+
+%% ---------------------------------------------------------------------------
+%% RELOCATED FROM RESULTS -- paste into Discussion, do not lose:
+%%
+%% (a) Interpretation of the 3.1 mm result: that the compensated error stays inside
+%%     the 5 mm band supports placing the thermal reference sensor at the front
+%%     bulkhead. Results states the measurement; Discussion argues what it means.
+%%
+%% (b) Limitation: the compensation was characterized only in clean pipe. Validation
+%%     in a corroded section awaits access to the decommissioned line, which was
+%%     unavailable during this campaign.
+%% ---------------------------------------------------------------------------

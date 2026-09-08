@@ -1,0 +1,61 @@
+{
+  "run_id": "fix-report-style-draft-with_skill",
+  "expectations": [
+    {
+      "text": "chronology-removed: the 'four steps ... First, Second, Third, Fourth' pipeline narration is gone, replaced by argument-ordered prose",
+      "passed": true,
+      "evidence": "No 'First,/Second,/Third,/Fourth' in the manuscript body (the only hit is the trailing change-log comment describing the removal). Methods now opens with the claim and the control law: 'The crawler holds a commanded standoff $d_{\\mathrm{ref}}$ from the pipe wall while traversing the pipe', then the PD law, then the estimator introduced as the source of $\\hat{d}$."
+    },
+    {
+      "text": "code-identifiers-removed: wall_follow, ctrl_mode, and set_track_velocity() no longer appear in prose",
+      "passed": true,
+      "evidence": "grep finds these three strings only on lines 135-136, inside the '% What changed, and why' LaTeX comment block that documents their removal. Manuscript prose says instead: 'streamed to the drive controller at $f_{\\mathrm{ctrl}} = 100$~Hz through a real-time motor-control interface.'"
+    },
+    {
+      "text": "config-inventory-removed: the EKF Q/R/P0 numeric listing, the 40-iteration cap, and the divergence-check interval are deleted or reduced to at most a symbolic/tabled treatment with a physical-reason sentence",
+      "passed": true,
+      "evidence": "P0, the 40-iteration cap, and the every-5-cycles divergence check appear nowhere in the body (only in the change-log comment noting their deletion). Q and R are reduced to symbols in prose ('Process and measurement noise covariances $\\mathbf{Q}$ and $\\mathbf{R}$ are given in Table~\\ref{tab:params}') with a physical-reason sentence for the filtering: 'to reject sensor noise, which at this standoff is comparable to the tolerance the controller must hold.'"
+    },
+    {
+      "text": "defensive-completeness-deleted: the unused-simulation-mode sentence, the 'inspired by impedance control but not formally' assert-retract pair, and the 'is described in Section IV' signpost are all deleted",
+      "passed": true,
+      "evidence": "grep for 'simulation mode|impedance|Section IV' matches only lines 143-145 of the change-log comment ('Deleted: the unused simulation mode ...; the assert-retract sentence about impedance control; the signpost sentence pointing at Section IV'). None of the three appears in the manuscript text."
+    },
+    {
+      "text": "protocol-evicted-from-results: run count, placement, operator start, traverse speed, and logging rate no longer appear in Results (moved to Methods/setup)",
+      "passed": true,
+      "evidence": "All five moved into the new Methods '\\subsection{Experimental Setup}': 'At the start of each run the crawler was placed at the pipe entrance and traversed the full length autonomously at 0.1~m/s. Wall distance was logged at $f_{\\mathrm{ctrl}}$ ... We performed 16 runs, alternating between the compensated and uncompensated controller'. The Results body reports only measured error, the paired difference, and the time course; the only count in Results is the figure caption's table-reading note 'over eight runs per controller'."
+    },
+    {
+      "text": "interpretation-removed-from-results: 'which shows that', 'confirms our design choice', and the thermal-time-constant explanation are removed from Results (deleted or moved to a Discussion)",
+      "passed": true,
+      "evidence": "grep for 'which shows that|confirms|thermal time constant' matches only the change-log comment (lines 154-156), which routes all three to the Discussion. Results states the time course as evidence without cause: 'Within the first 30~s the uncompensated controller held the lower error, by [x.x]~mm on average. Beyond 30~s its error grew for the remainder of the traverse.'"
+    },
+    {
+      "text": "aggregate-stats-only: the signed by-direction split (+2.8/-3.4 mm) is not the headline; the '14 of 16 runs converged' bookkeeping and the exclusion note are removed or replaced by aggregate absolute error",
+      "passed": true,
+      "evidence": "The clockwise/counterclockwise split and the 14-of-16 convergence bookkeeping appear nowhere in the body (only in the change-log comment recording their deletion). The metric is defined as an aggregate absolute quantity: 'The accuracy metric is the mean absolute standoff error $\\overline{|e|}$ over a run ... mean $\\pm$ standard deviation ... All runs enter the statistics.' Note the headline values are left as [x.x] placeholders because the draft's 3.1 mm was computed with the two runs excluded."
+    },
+    {
+      "text": "excuse-reframed: the 'was not available' excuse sentence is deleted or reframed without stating what the lab lacked",
+      "passed": true,
+      "evidence": "The sentence 'which was not available during the test campaign' is absent from the manuscript. The change-log comment proposes a Discussion reframing that drops the availability excuse and states scope instead: 'Evaluation was confined to clean pipe. Extending it to corroded pipe requires only access to a decommissioned line, not a change to the controller.'"
+    },
+    {
+      "text": "caption-fixed: the figure caption does not start with 'The', does not say 'See text for details', and decodes what is plotted",
+      "passed": true,
+      "evidence": "'\\caption{Absolute standoff error along the 12~m traverse for the compensated and uncompensated controllers. Solid lines are the mean across runs and shaded bands one standard deviation, over eight runs per controller. The dashed horizontal line marks the 5~mm standoff tolerance.}' \u2014 opens with 'Absolute', no 'See text for details', and every plotted element is decoded."
+    },
+    {
+      "text": "no-contractions: \"it's\" and any other contractions are removed",
+      "passed": true,
+      "evidence": "grep for contractions matches only line 174 of the change-log comment ('the contraction \"it\\'s\" is gone with the sentence that carried it'). No contraction remains in the manuscript text; the sentence that carried it ('it's checked for divergence every 5 cycles') was deleted outright."
+    }
+  ],
+  "summary": {
+    "passed": 10,
+    "failed": 0,
+    "total": 10,
+    "pass_rate": 1.0
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "run_id": "fix-report-style-draft-with_skill",
+  "expectations": [
+    {
+      "text": "chronology-removed: the 'four steps ... First, Second, Third, Fourth' pipeline narration is gone, replaced by argument-ordered prose",
+      "evidence": "grep for 'First,|Second,|Third,|Fourth,|four steps' returns no matches. Methods is reorganized into argument-ordered subsections - Wall-Following Control, Wall-Distance Estimation, Thermal Compensation, Experimental Setup, Protocol and Analysis - so the control law comes first, the estimator supporting it second, and the paper's contribution (thermal compensation) third, where it defines the two compared controllers: 'This defines the two controllers compared in this work. The \\emph{compensated controller} applies the reference correction. The \\emph{uncompensated controller} uses the wall-facing measurements directly.' The 100 Hz issue rate survives as one clause at the end of the control subsection rather than as step four of a loop.",
+      "passed": true
+    },
+    {
+      "text": "code-identifiers-removed: wall_follow, ctrl_mode, and set_track_velocity() no longer appear in prose",
+      "evidence": "grep for 'wall_follow|ctrl_mode|set_track_velocity' returns no matches anywhere in the file, including comments. Replaced by role descriptions: 'A proportional--derivative law drives this error to zero through a lateral velocity correction' and 'Track velocity commands are issued to the drive electronics at 100~Hz.'",
+      "passed": true
+    },
+    {
+      "text": "config-inventory-removed: the EKF Q/R/P0 numeric listing, the 40-iteration cap, and the divergence-check interval are deleted or reduced to at most a symbolic/tabled treatment with a physical-reason sentence",
+      "evidence": "grep for 'Q=|R=|P0|diag(|40 iter|40-iteration|every 5 cycles|alpha=0.2|kp=|kd=|2.1|100*I' returns no matches. All three are deleted outright rather than tabled, and the deletion is justified in an author note: 'Filter covariances and the divergence/iteration guards from the draft are deliberately omitted: they are tuning and defensive implementation, and carry no argument.' The estimator survives as a named component with its role stated: 'Their measurements are low-pass filtered to reject sensor noise and fused by an extended Kalman filter into the estimate $\\hat{d}$ that enters~(1).' Gains remain symbolic ($k_p$, $k_d$, $u_{\\max}$) with a physical reason for the bound: 'The bound $u_{\\max}$ keeps a single correction from stalling one track against the wall.'",
+      "passed": true
+    },
+    {
+      "text": "defensive-completeness-deleted: the unused-simulation-mode sentence, the 'inspired by impedance control but not formally' assert-retract pair, and the 'is described in Section IV' signpost are all deleted",
+      "evidence": "grep for 'simulation mode|impedance|Section IV|described in Section' returns no matches anywhere in the file, comments included. All three are gone with no rewritten survivor - notably the impedance assert-retract, which the without_skill run preserved in reworded form.",
+      "passed": true
+    },
+    {
+      "text": "protocol-evicted-from-results: run count, placement, operator start, traverse speed, and logging rate no longer appear in Results (moved to Methods/setup)",
+      "evidence": "The Results body is two paragraphs of measurement only: 'Fig.~3 shows the wall-distance error along a traverse for both controllers. Under the compensated controller the mean absolute error was 3.1~mm.' and the 30 s crossover observation. Placement, speed, and logging moved to a new \\subsection{Experimental Setup} ('The crawler was placed at the pipe entrance and traversed the pipe autonomously at 0.1~m/s ... Wall distance was logged at the control rate'), and the run count and alternation moved to \\subsection{Protocol and Analysis} ('We performed 16 traverses, alternating between the compensated and the uncompensated controller'). The operator-start clause is deleted entirely. The only run count remaining in the Results float is the figure caption's 'Values are for eight traverses per controller', which is caption self-containment rather than protocol narration.",
+      "passed": true
+    },
+    {
+      "text": "interpretation-removed-from-results: 'which shows that', 'confirms our design choice', and the thermal-time-constant explanation are removed from Results (deleted or moved to a Discussion)",
+      "evidence": "grep for 'which shows that|confirms|demonstrates' returns no match in any rendered text. All three are lifted out of the Results body into a trailing comment block headed 'MOVED OUT OF RESULTS -- belongs in Discussion', which preserves them as reworked Discussion sentences ('The reduction in wall-distance error under the compensated controller supports placing the reference sensor at the front bulkhead' and 'The uncompensated controller degrades only after roughly 30 s, which is consistent with the thermal time constant of the sensor mount'), with the hedge explicitly reasoned: 'one observation matching one mechanism supports possibility, not assertion.' What remains in Results is the bare observation with no mechanism attached: 'Beyond 30~s the error under the uncompensated controller grew for the remainder of the traverse, whereas the error under the compensated controller showed no comparable growth.' Note the disposition is a comment block, not an actual \\section{Discussion}, since the task supplied only Methods and Results.",
+      "passed": true
+    },
+    {
+      "text": "aggregate-stats-only: the signed by-direction split (+2.8/-3.4 mm) is not the headline; the '14 of 16 runs converged' bookkeeping and the exclusion note are removed or replaced by aggregate absolute error",
+      "evidence": "grep for '+2.8|-3.4|clockwise|counterclockwise' matches only a comment explaining the removal: 'The directional split from the draft ... is omitted here: signed, direction-split error is an agreement analysis, and the claim under test is magnitude of tracking error, not directional bias. Restore the split only if direction dependence is itself a finding.' The '14 of 16 runs converged' bookkeeping is gone (grep '14 of 16' returns nothing) and Results reports aggregate absolute error instead: 'Performance is reported as the absolute wall-distance error $|e(t)|$, averaged over a traverse and summarized across traverses as mean $\\pm$ SD.' The exclusion is no longer a Results statistic; it is relocated to Methods as an analysis criterion and simultaneously challenged in an author note recommending its removal ('It reads as post hoc. Either state that the criterion was fixed before the campaign, or report all 16 traverses ... the latter is the stronger paper'). The missing aggregate SD is flagged rather than invented: 'Report as \"3.1 $\\pm$ X.X mm\".'",
+      "passed": true
+    },
+    {
+      "text": "excuse-reframed: the 'was not available' excuse sentence is deleted or reframed without stating what the lab lacked",
+      "evidence": "grep for 'not available|was not available' returns no matches. The sentence is deleted from the body and reframed in the moved-out block as a scope bound rather than a shortfall: 'Validation was carried out in a clean test pipe. The controller is not restricted to clean pipe, and extending the validation to corroded sections would require only access to a decommissioned line.' This states the condition for extending the work rather than what the lab lacked during the campaign - the distinction on which the without_skill run failed ('which was unavailable during this campaign').",
+      "passed": true
+    },
+    {
+      "text": "caption-fixed: the figure caption does not start with 'The', does not say 'See text for details', and decodes what is plotted",
+      "evidence": "'\\caption{Wall-distance error along a traverse under the compensated and the uncompensated controller. Curves are the mean across traverses and shaded bands span one standard deviation. The dashed line marks the 5~mm error band. Values are for eight traverses per controller.}' - opens with 'Wall-distance', no 'See text for details', and curves, bands, and the reference line are each decoded. An author note correctly conditions this on the actual plot: 'Match these to what the figure actually plots, and state which color belongs to which controller.'",
+      "passed": true
+    },
+    {
+      "text": "no-contractions: \"it's\" and any other contractions are removed",
+      "evidence": "grep for it's/don't/doesn't/isn't/didn't/can't/won't/we're/we've/that's/there's/they're returns no matches. The draft sentence carrying 'it's checked for divergence every 5 cycles' was removed along with the divergence guard.",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "passed": 10,
+    "failed": 0,
+    "total": 10,
+    "pass_rate": 1.0
+  }
+}

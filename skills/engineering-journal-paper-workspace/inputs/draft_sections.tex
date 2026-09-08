@@ -1,0 +1,40 @@
+\section{Methods}
+
+The inspection crawler's control software processes each cycle in four steps. First,
+the raw wall-distance signal from the two ToF sensors is read at 100 Hz. Second, the
+signal is low-pass filtered using a single-pole IIR filter with alpha=0.2. Third, the
+filtered distance is passed to the wall_follow controller (ctrl_mode="wall_follow" in
+the config), which computes a lateral correction using a PD law with kp=2.1 and
+kd=0.35; the correction is then clipped to 0.15 m/s. Fourth, the track velocities are
+sent to the motor driver via the set_track_velocity() API of the vendor SDK at 100 Hz.
+
+The state estimator is an extended Kalman filter with process noise
+Q=diag(0.01, 0.01, 0.001), measurement noise R=diag(4.0, 4.0), and initial covariance
+P0=100*I. The EKF update is capped at 40 iterations, and it's checked for divergence
+every 5 cycles. A simulation mode shares the same controller code but was not used for
+the results reported here. The controller is inspired by impedance control but is not
+formally an impedance controller, because the contact dynamics are not modeled. The
+selection of the filter parameters is described in Section IV.
+
+\section{Results}
+
+We conducted sixteen runs through the 12 m test pipe. In each run, the crawler was
+placed at the pipe entrance, the operator started the wall_follow controller, and the
+crawler traversed the pipe autonomously at 0.1 m/s while logging wall distance at 100
+Hz; runs alternated between the compensated and uncompensated controller.
+
+Figure 3 shows the wall-distance error over time. The compensated controller kept the
+mean absolute error at 3.1 mm, which shows that the thermal compensation is effective
+and confirms our design choice of placing the reference sensor at the front bulkhead.
+By direction, clockwise runs had error +2.8 +/- 1.1 mm and counterclockwise runs had
+-3.4 +/- 1.6 mm. 14 of 16 runs converged to within the 5 mm band before the halfway
+point; the two non-converging runs are excluded from the aggregate statistics. The
+uncompensated controller was better in the first 30 s but drifted afterwards; this
+matches the thermal time constant of the sensor mount.
+
+Testing in a corroded pipe section would require access to the decommissioned line,
+which was not available during the test campaign.
+
+\begin{figure}
+\caption{The wall-distance error for both controllers. See text for details.}
+\end{figure}

@@ -1,0 +1,251 @@
+% Methods and Results sections, IEEEtran (\input into main.tex).
+% Requires: amsmath, booktabs, graphicx, siunitx not needed (units written literally).
+% Figure assets referenced here (fig_block_diagram, fig_setup, fig_offsets) are not yet
+% drawn; each figure environment carries a visible placeholder so the file compiles.
+
+\section{Methods}
+
+\subsection{Landing as an Image-Plane Regulation Problem}
+
+A quadrotor descending onto a deck that is itself moving cannot rely on a position
+estimate expressed in a world frame, because any error in that estimate accumulates over
+the descent and is unobservable to the vehicle. The relative quantity that matters for
+landing, namely the horizontal offset between the vehicle and the deck, is measured
+directly by a downward-facing camera that observes a fiducial marker fixed to the deck.
+We therefore regulate that offset in the image plane and never form a world-frame estimate
+of the deck.
+
+The marker detection is smoothed with an exponential moving average filter, which
+suppresses the pixel-level jitter of individual detections without adding a state estimator
+between the camera and the control law. Writing $\bar{\mathbf{p}} = (\bar{u}, \bar{v})^{\top}$
+for the smoothed marker center, the image-plane error is given by
+%
+\begin{equation}
+  \mathbf{e} = \bar{\mathbf{p}} - \mathbf{c},
+  \label{eq:error}
+\end{equation}
+%
+where $\mathbf{c} = (u_{c}, v_{c})^{\top}$ is the principal point, taken at the image
+center. The error is normalized per axis by the corresponding half-image dimension,
+$\hat{e}_{u} = e_{u}/u_{c}$ and $\hat{e}_{v} = e_{v}/v_{c}$, so that the control gains are
+independent of image resolution.
+
+The horizontal velocity command is proportional to the normalized error and damped by the
+measured horizontal velocity of the vehicle,
+%
+\begin{align}
+  v_{x} &= \mathrm{sat}\!\left(-k_{p}\,\hat{e}_{v} - k_{d}\,\tilde{v}_{x},\ \bar{v}_{xy}\right), \label{eq:vx}\\
+  v_{y} &= \mathrm{sat}\!\left(-k_{p}\,\hat{e}_{u} - k_{d}\,\tilde{v}_{y},\ \bar{v}_{xy}\right), \label{eq:vy}
+\end{align}
+%
+where $k_{p}$ is the proportional gain, $k_{d}$ is the damping gain,
+$\tilde{v}_{x}$ and $\tilde{v}_{y}$ are the horizontal velocities reported by the flight
+controller, $\bar{v}_{xy}$ is the horizontal speed limit, and
+$\mathrm{sat}(x, a) = \min(\max(x, -a), a)$. The image rows are aligned with the forward
+axis of the vehicle and the image columns with its lateral axis, so the row component of
+the error drives the forward velocity and the column component drives the lateral velocity.
+The damping term uses the measured vehicle velocity rather than a numerical derivative of
+the error, which keeps the command free of differentiated detection noise and, on a moving
+deck, resists the standing velocity error that a purely proportional law would leave.
+
+Descent is gated on alignment. The vertical velocity command is
+%
+\begin{equation}
+  v_{z} =
+  \begin{cases}
+    -v_{f}, & h < h_{f},\\
+    -\bar{v}_{z}, & h \geq h_{f} \ \text{and}\ \lVert \mathbf{e} \rVert < \rho_{g},\\
+    0, & \text{otherwise},
+  \end{cases}
+  \label{eq:vz}
+\end{equation}
+%
+where $h$ is the estimated altitude above the deck, $h_{f}$ is the flare altitude,
+$\bar{v}_{z}$ is the nominal descent speed, $v_{f}$ is the reduced descent speed used
+during flare, and $\rho_{g}$ is the alignment radius. The gate is evaluated on the raw
+pixel error of \eqref{eq:error} rather than on the normalized error, so $\rho_{g}$ is
+expressed in pixels. Holding altitude until the vehicle is aligned prevents the descent
+from consuming the control authority that lateral correction requires, and the reduced
+speed below $h_{f}$ limits the impact energy at contact. Parameter values are listed in
+Table~\ref{tab:params}.
+
+Velocity setpoints are streamed to the flight controller at $f_{c} = 50$~Hz, whereas
+marker detections arrive at $f_{d} = 8$~Hz. Most control cycles therefore execute without
+a new measurement, and the smoothed detection is held between frames. When no detection
+has been received for longer than $\tau_{h}$, the last command produced from a fresh
+detection is reissued at half amplitude until detections resume, which keeps the vehicle
+moving with the deck instead of arresting over a marker it can no longer see.
+
+\subsection{Altitude Estimation}
+
+Neither available altitude source is sufficient alone. The barometer is continuous but
+drifts, and the rangefinder is accurate near the ground but noisy. The two are blended as
+%
+\begin{equation}
+  h = (1 - \kappa)\, h_{b} + \kappa\, h_{r},
+  \qquad
+  \kappa = \frac{\Delta t}{\tau + \Delta t},
+  \label{eq:alt}
+\end{equation}
+%
+where $h_{b}$ is the barometric altitude, $h_{r}$ is the rangefinder altitude, $\Delta t$
+is the control period, and $\tau$ is the blending time constant. When no rangefinder
+sample is available, $h = h_{b}$. With the values of Table~\ref{tab:params} the estimate
+follows the barometer within one control cycle and the rangefinder enters as a small
+persistent correction. The altitude estimate is read only by the flare condition of
+\eqref{eq:vz}.
+
+%% TODO(author): \eqref{eq:alt} is the blend the code actually implements, which is a
+%% static weighting rather than the complementary filter the source comment describes.
+%% Decide whether to correct the implementation and re-run before submission, or to keep
+%% the present description of the as-flown system.
+
+\subsection{Baseline Controller}
+
+The comparison isolates the contribution of the visual measurement. The
+\emph{vision-servoed controller} is the system of \eqref{eq:error}--\eqref{eq:vz}. The
+\emph{open-loop controller} commands a constant descent at $\bar{v}_{z}$ with no lateral
+velocity and no flare, and is the dead-reckoning strategy available when the deck is not
+observed. The two controllers share the vehicle, the flight-controller interface, the
+command rate, and the initial hover pose, and differ only in whether the marker
+measurement enters the command.
+
+\subsection{Experimental Setup}
+
+Landings were performed on a 450~mm quadrotor running an open-source flight
+stack\footnote{PX4 v1.14.} and carrying a downward-facing global-shutter camera at
+$640 \times 480$ pixels. The camera detected an AprilTag 36h11 marker of 160~mm side
+length mounted at the center of the deck of a wheeled cart, which travelled at a constant
+0.3~m/s. The deck was circular with a radius of 300~mm, which defines the physical
+tolerance the landing must meet. Ground truth was recorded by a motion-capture system
+(OptiTrack) at 120~Hz, which tracked both the vehicle and the deck, and all quantities
+reported in Section~\ref{sec:results} are derived from that record rather than from
+onboard estimates. Fig.~\ref{fig:setup} shows the apparatus.
+
+Each controller was evaluated over $N = 12$ landings, and the two sets were analyzed as 12
+paired observations. Every landing began from a hover at the same altitude and lateral
+offset from the moving deck, and ended at contact.
+
+%% TODO(author): state the pairing scheme (alternating? blocked? randomized?) and the
+%% initial hover altitude/offset --- neither is recorded in the lab log.
+
+\subsection{Metrics and Statistical Analysis}
+
+The primary metric is the \emph{touchdown offset}, defined as the horizontal distance
+between the point of first contact and the deck center at the same instant, both taken
+from the motion-capture record. A landing is counted as successful when the touchdown
+offset is smaller than the 300~mm deck radius. The \emph{descent duration} is the elapsed
+time from the start of the descent to first contact.
+
+Touchdown offset is summarized as mean $\pm$ standard deviation across trials, which
+reports the achieved accuracy and its repeatability, and the difference between
+controllers is summarized as the paired mean difference with a 95\% confidence interval,
+which reports the size and the precision of the improvement. The paired difference was
+tested with a two-sided paired $t$-test at a significance level of 0.05. Inference was
+performed on the primary metric only. Descent duration and landing success are reported
+descriptively, so no correction for multiplicity is required.
+
+\begin{table}[!t]
+\caption{Controller parameters. Values apply to the vision-servoed controller. The
+open-loop controller uses only the nominal descent speed $\bar{v}_{z}$.}
+\label{tab:params}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llr}
+\toprule
+Symbol & Description & Value \\
+\midrule
+$f_{c}$        & Velocity setpoint rate (Hz)                          & 50 \\
+$f_{d}$        & Marker detection rate (Hz)                           & 8 \\
+$k_{p}$        & Proportional gain on normalized image error (m/s)    & 0.9 \\
+$k_{d}$        & Damping gain on measured horizontal velocity         & 0.15 \\
+$\bar{v}_{xy}$ & Horizontal speed limit (m/s)                         & 1.2 \\
+$\bar{v}_{z}$  & Nominal descent speed (m/s)                          & 0.5 \\
+$\rho_{g}$     & Alignment radius for the descent gate (px)           & 40 \\
+$h_{f}$        & Flare altitude above the deck (m)                    & 0.35 \\
+$v_{f}$        & Descent speed during flare (m/s)                     & 0.25 \\
+$\tau$         & Altitude blending time constant (s)                  & 0.8 \\
+$\tau_{h}$     & Detection timeout before the half-amplitude hold (s) & 0.4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!t]
+\centering
+% \includegraphics[width=\columnwidth]{fig_block_diagram.pdf}
+\fbox{\parbox[c][22mm][c]{0.92\columnwidth}{\centering\footnotesize
+Placeholder: linear left-to-right block diagram --- camera $\rightarrow$ marker detection
+$\rightarrow$ smoothing $\rightarrow$ image-plane error $\rightarrow$ velocity law
+$\rightarrow$ flight controller, with the altitude blend feeding the flare condition.}}
+\caption{System architecture of the vision-servoed landing controller. Marker detections
+from the downward camera are smoothed and differenced against the principal point to form
+the image-plane error, which the velocity law converts into horizontal and vertical
+setpoints for the flight controller. The blended altitude estimate enters only the flare
+condition. Feedback through the physical world is implicit.}
+\label{fig:block}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+% \includegraphics[width=\columnwidth]{fig_setup.pdf}
+\fbox{\parbox[c][22mm][c]{0.92\columnwidth}{\centering\footnotesize
+Placeholder: annotated photograph of the apparatus with callouts on the quadrotor, the
+downward camera, the AprilTag marker, the cart deck, and the motion-capture cameras.}}
+\caption{Experimental apparatus. Callouts identify the 450~mm quadrotor, its
+downward-facing camera, the 160~mm AprilTag marker at the center of the deck of 300~mm
+radius, and the wheeled cart that carries the deck at 0.3~m/s.}
+\label{fig:setup}
+\end{figure}
+
+\section{Results}
+\label{sec:results}
+
+The vision-servoed controller landed with a touchdown offset of $46 \pm 18$~mm, against
+$187 \pm 92$~mm for the open-loop controller (Table~\ref{tab:results},
+Fig.~\ref{fig:offsets}). The reduction is 75\%, or a factor of 4.1. The paired mean
+difference is 141~mm with a 95\% confidence interval of [98, 184]~mm
+($p = 2 \times 10^{-4}$). The standard deviation of the offset falls by a factor of 5.1,
+from 92 to 18~mm.
+
+All 12 vision-servoed landings ended inside the 300~mm deck radius. Nine of the 12
+open-loop landings did so, and the remaining three touched down beyond the deck edge.
+
+Descent duration was $14.2 \pm 1.9$~s for the vision-servoed controller and
+$9.8 \pm 0.7$~s for the open-loop controller, an increase of 4.4~s, or 45\%.
+
+One vision-servoed trial contained two intervals longer than $\tau_{h}$ in which no marker
+detection arrived. The half-amplitude hold was in force during both intervals, detections
+resumed in each case, and the trial ended within the deck radius.
+
+\begin{table}[!t]
+\caption{Landing performance over $N = 12$ paired trials per controller. Values are mean
+$\pm$ standard deviation, and the change column is the paired mean difference with its
+95\% confidence interval.}
+\label{tab:results}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrr}
+\toprule
+Metric & Open-loop & Vision-servoed & Change \\
+\midrule
+Touchdown offset (mm) & $187 \pm 92$  & $46 \pm 18$    & $-141$ [$-184$, $-98$] \\
+Landings within deck  & 9 / 12        & 12 / 12        & --- \\
+Descent duration (s)  & $9.8 \pm 0.7$ & $14.2 \pm 1.9$ & $+4.4$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!t]
+\centering
+% \includegraphics[width=\columnwidth]{fig_offsets.pdf}
+\fbox{\parbox[c][22mm][c]{0.92\columnwidth}{\centering\footnotesize
+Placeholder: per-trial touchdown offsets for both controllers, paired trials joined by
+lines, with the 300~mm deck radius drawn as a reference line.}}
+\caption{Touchdown offset for each of the 12 paired landings. Filled circles mark the
+open-loop controller and open squares the vision-servoed controller, with a line joining
+the two members of each pair. The horizontal reference line is the 300~mm deck radius,
+beyond which the vehicle misses the deck.}
+\label{fig:offsets}
+\end{figure}

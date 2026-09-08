@@ -1,0 +1,15 @@
+{
+  "eval_id": 0,
+  "eval_name": "methods-from-code",
+  "prompt": "We finished our drone-landing experiments and need to start the journal paper (IEEE-style venue). From the controller source code and the lab notes, draft the Methods section (system description, experimental setup, statistical analysis) and the Results section as LaTeX. Save as paper_sections.tex.",
+  "assertions": [
+    "no-code-identifiers-in-prose: the LaTeX contains none of the source identifiers baro_vision, baro_only, send_velocity_setpoint, mavsdk, ZMQ, EMA_ALPHA, KP_XY, HSV_LOWER, _poll_tag as prose (an academically renamed equivalent must be used)",
+    "modes-become-named-controllers: the two config modes appear as two academically named controllers/conditions that serve as the experimental variable of the comparison",
+    "tuning-values-omitted: numeric tuning values of supporting components (EMA coefficient, PD gains, complementary-filter time constant, HSV bounds, retry cap, image-center pixels, pixel gate radius) do NOT appear in running prose; components are named with at most one physical-reason sentence; values that legitimately appear are experimental conditions (platform speed, tag size, N, camera/control rates used as an argument) — a compact parameter table is tolerated but not required, and internal constants (HSV bounds, retry cap, image center) must appear nowhere at all",
+    "rate-mismatch-as-argument: the camera-rate vs control-rate mismatch (8 Hz vs 50 Hz) is stated as the reason for the smoothing/hold design (a number carrying an argument), not as bare spec inventory",
+    "results-evidence-only: the Results section contains no protocol (placement, operator actions, logging) and no interpretation phrases such as 'which shows that' / 'demonstrates that' / 'confirms'",
+    "aggregate-headline-stats: the headline accuracy is aggregate mean±SD touchdown offset; the downwind/upwind direction split is not reported as a headline, and per-trial dropout bookkeeping is not reported as a statistic",
+    "quantified-comparison: the comparison between modes is quantified (paired difference with CI, ratio, or percent), not stated as 'better'",
+    "ieee-mechanics: no contractions, no prose semicolons, numerals used for numbers 10 and above"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "skill_name": "engineering-journal-paper",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "methods-from-code",
+      "prompt": "We finished our drone-landing experiments and need to start the journal paper (IEEE-style venue). From the controller source code and the lab notes, draft the Methods section (system description, experimental setup, statistical analysis) and the Results section as LaTeX. Save as paper_sections.tex.",
+      "expected_output": "Methods in argument/dependency order with no code identifiers; tuning constants omitted (components named with one physical-reason sentence, values at most in a compact table if venue expects), one-sentence treatment of supporting components; Results as aggregate evidence only (no protocol, no interpretation, no direction-split, no convergence bookkeeping)",
+      "files": [
+        "inputs/drone_landing_controller.py",
+        "inputs/experiment_notes.md"
+      ],
+      "assertions": [
+        "no-code-identifiers-in-prose: none of baro_vision, baro_only, send_velocity_setpoint, mavsdk, ZMQ, EMA_ALPHA, KP_XY, HSV_LOWER, _poll_tag appear as prose",
+        "modes-become-named-controllers: the two config modes appear as two academically named controllers/conditions serving as the experimental variable",
+        "tuning-values-omitted: numeric tuning values of supporting components (EMA coefficient, PD gains, filter time constant, HSV bounds, retry cap, image-center pixels, gate radius) do not appear in running prose; internal constants (HSV bounds, retry cap, image center) appear nowhere at all; values that appear are experimental conditions or rates used as an argument",
+        "rate-mismatch-as-argument: the 8 Hz camera vs 50 Hz control mismatch is stated as the reason for the smoothing/hold design, not as bare spec inventory",
+        "results-evidence-only: Results contains no protocol and no interpretation/mechanism claims ('which shows that', 'demonstrates', 'confirms', 'follows from')",
+        "aggregate-headline-stats: the downwind/upwind direction split does not appear in Results at all, and per-trial dropout bookkeeping is not reported as a statistic",
+        "quantified-comparison: the mode comparison is quantified (paired difference with CI, ratio, or percent), never 'better'",
+        "ieee-mechanics: no contractions; no prose semicolons (semicolons inside post-equation where-lists are IEEE convention and exempt); numerals for numbers 10 and above"
+      ]
+    },
+    {
+      "id": 1,
+      "eval_name": "fix-report-style-draft",
+      "prompt": "My professor says our draft reads like a lab report, not a journal paper. Here are the Methods and Results excerpts from our pipe-inspection-robot manuscript (draft_sections.tex). Revise them into proper journal style and save the revised version as revised_sections.tex.",
+      "expected_output": "Chronological pipeline narration converted to argument; code identifiers and config inventory removed; protocol evicted from Results to Methods; interpretation removed from Results; aggregate absolute error as the headline; defensive-completeness sentences deleted; excuse reframed; caption self-contained; the substantive findings preserved",
+      "files": [
+        "inputs/draft_sections.tex"
+      ],
+      "assertions": [
+        "chronology-removed: the 'four steps ... First, Second, Third, Fourth' pipeline narration is gone, replaced by argument-ordered prose",
+        "code-identifiers-removed: wall_follow, ctrl_mode, and set_track_velocity() no longer appear in prose",
+        "config-inventory-removed: the EKF Q/R/P0 numeric listing, the 40-iteration cap, and the divergence-check interval are deleted (symbolic mention with a physical-reason sentence at most)",
+        "defensive-completeness-deleted: the unused-simulation-mode sentence, the 'inspired by impedance control but not formally' assert-retract pair, and the 'is described in Section IV' signpost are all deleted",
+        "protocol-evicted-from-results: run count, placement, operator start, traverse speed, and logging rate no longer appear in Results (moved to Methods/setup)",
+        "interpretation-removed-from-results: 'which shows that', 'confirms our design choice', and the thermal-time-constant explanation are removed from Results (deletion, relocation to a Discussion section, or clearly marked relocation notes all count)",
+        "content-preserved: the revised Results still reports the compensated controller's aggregate error and the early-phase crossover observation as prose — a revision that deletes the findings does not pass",
+        "aggregate-stats-only: the signed by-direction split is not reported in Results; the '14 of 16 runs converged' bookkeeping and the exclusion note are removed or replaced by aggregate absolute error",
+        "excuse-reframed: the 'was not available' excuse is deleted or reframed without stating what the lab lacked",
+        "caption-fixed: the figure caption does not start with 'The', does not say 'See text for details', and decodes what is plotted",
+        "no-contractions: all contractions removed"
+      ]
+    }
+  ]
+}

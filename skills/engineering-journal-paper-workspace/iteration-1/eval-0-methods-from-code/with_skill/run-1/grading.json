@@ -1,0 +1,51 @@
+{
+  "run_id": "methods-from-code-with_skill",
+  "expectations": [
+    {
+      "text": "no-code-identifiers-in-prose: the LaTeX contains none of the source identifiers baro_vision, baro_only, send_velocity_setpoint, mavsdk, ZMQ, EMA_ALPHA, KP_XY, HSV_LOWER, _poll_tag as prose (an academically renamed equivalent must be used)",
+      "passed": true,
+      "evidence": "grep -nE 'baro_vision|baro_only|send_velocity_setpoint|mavsdk|ZMQ|EMA_ALPHA|KP_XY|HSV|_poll_tag' returns no matches anywhere in the file. Renamed equivalents used throughout: 'vision-servoed controller', 'open-loop controller', 'exponential moving average filter', 'proportional gain $k_{p}$'."
+    },
+    {
+      "text": "modes-become-named-controllers: the two config modes appear as two academically named controllers/conditions that serve as the experimental variable of the comparison",
+      "passed": true,
+      "evidence": "Subsection 'Baseline Controller': 'The \\emph{vision-servoed controller} is the system of (1)-(4). The \\emph{open-loop controller} commands a constant descent ... The two controllers share the vehicle, the flight-controller interface, the command rate, and the initial hover pose, and differ only in whether the marker measurement enters the command.'"
+    },
+    {
+      "text": "constants-tabled-not-prosed: gains, velocity limits, and thresholds appear in a parameter table (symbol/description/value), and internal implementation constants (EMA coefficient, HSV bounds, retry cap, image center pixels) appear nowhere",
+      "passed": true,
+      "evidence": "Table~\\ref{tab:params} has columns 'Symbol & Description & Value' listing k_p 0.9, k_d 0.15, v_xy 1.2, v_z 0.5, rho_g 40 px, h_f 0.35 m, v_f 0.25, tau 0.8, tau_h 0.4. Grep finds no 0.35 EMA coefficient (the only 0.35 is flare altitude), no HSV bounds, no consecutive-miss cap, and no 320/240 image-center pixels; the principal point is referred to symbolically as $\\mathbf{c}=(u_c,v_c)$."
+    },
+    {
+      "text": "rate-mismatch-as-argument: the camera-rate vs control-rate mismatch (8 Hz vs 50 Hz) is stated as the reason for the smoothing/hold design (a number carrying an argument), not as bare spec inventory",
+      "passed": true,
+      "evidence": "'Velocity setpoints are streamed to the flight controller at $f_{c} = 50$~Hz, whereas marker detections arrive at $f_{d} = 8$~Hz. Most control cycles therefore execute without a new measurement, and the smoothed detection is held between frames.' The rates are then used to motivate the half-amplitude decay hold."
+    },
+    {
+      "text": "results-evidence-only: the Results section contains no protocol (placement, operator actions, logging) and no interpretation phrases such as 'which shows that' / 'demonstrates that' / 'confirms'",
+      "passed": true,
+      "evidence": "Results (lines 201-251) contains only measured quantities and comparisons: offsets, deck-radius outcomes, descent durations, and one dropout observation. Grep for 'which shows that|demonstrates that|confirms|suggests that|proves' returns no matches. Protocol (trial count, hover start, motion-capture ground truth) lives in the Methods 'Experimental Setup' subsection."
+    },
+    {
+      "text": "aggregate-headline-stats: the headline accuracy is aggregate mean\u00b1SD touchdown offset; the downwind/upwind direction split is not reported as a headline, and per-trial dropout bookkeeping is not reported as a statistic",
+      "passed": true,
+      "evidence": "Opening Results sentence: 'The vision-servoed controller landed with a touchdown offset of $46 \\pm 18$~mm, against $187 \\pm 92$~mm for the open-loop controller.' The downwind/upwind split (41/52 mm in the lab notes) appears nowhere in the file. The dropout appears as a single narrative sentence about the hold engaging and recovering, with no rate or per-trial statistic derived from it."
+    },
+    {
+      "text": "quantified-comparison: the comparison between modes is quantified (paired difference with CI, ratio, or percent), not stated as 'better'",
+      "passed": true,
+      "evidence": "'The reduction is 75\\%, or a factor of 4.1. The paired mean difference is 141~mm with a 95\\% confidence interval of [98, 184]~mm ($p = 2 \\times 10^{-4}$). The standard deviation of the offset falls by a factor of 5.1'; Table II carries a Change column '$-141$ [$-184$, $-98$]'."
+    },
+    {
+      "text": "ieee-mechanics: no contractions, no prose semicolons, numerals used for numbers 10 and above",
+      "passed": true,
+      "evidence": "No contractions found. The only semicolon in the file is inside a LaTeX comment on line 4 ('% drawn; each figure environment ...'), not in prose. Numbers 10 and above are numerals ('All 12 vision-servoed landings', 'Nine of the 12 open-loop landings', '$N = 12$'); spelled-out 'Nine' is below the numeral threshold and correct."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  }
+}

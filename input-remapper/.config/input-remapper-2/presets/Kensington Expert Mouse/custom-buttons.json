@@ -1,0 +1,40 @@
+[
+    {
+        "input_combination": [
+            {"type": 1, "code": 274}
+        ],
+        "target_uinput": "keyboard",
+        "output_symbol": "modify(Control_L, key(KEY_K))"
+    },
+    {
+        "input_combination": [
+            {"type": 1, "code": 275}
+        ],
+        "target_uinput": "keyboard",
+        "output_symbol": "KEY_ENTER"
+    },
+    {
+        "input_combination": [
+            {"type": 1, "code": 272},
+            {"type": 1, "code": 273}
+        ],
+        "target_uinput": "keyboard",
+        "output_symbol": "modify(Control_L, key(KEY_C))"
+    },
+    {
+        "input_combination": [
+            {"type": 1, "code": 272},
+            {"type": 1, "code": 274}
+        ],
+        "target_uinput": "keyboard",
+        "output_symbol": "modify(Control_L, modify(Shift_L, key(KEY_V)))"
+    },
+    {
+        "input_combination": [
+            {"type": 1, "code": 273},
+            {"type": 1, "code": 275}
+        ],
+        "target_uinput": "keyboard",
+        "output_symbol": "KEY_F3"
+    }
+]

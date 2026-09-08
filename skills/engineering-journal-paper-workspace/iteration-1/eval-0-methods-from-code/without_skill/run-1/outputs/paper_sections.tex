@@ -1,0 +1,225 @@
+% Methods and Results sections for the autonomous quadrotor landing manuscript.
+% IEEEtran class. Requires: amsmath, amssymb, graphicx, booktabs, siunitx.
+% Figure/table labels referenced here: fig:architecture, fig:statemachine,
+% fig:offsets, tab:params, tab:results.
+
+\section{Methods}
+
+\subsection{System Description}
+
+The landing system estimates the pose of a moving platform from a downward-facing
+camera and regulates the vehicle to a touchdown point on that platform using
+velocity setpoints. It comprises three elements: an altitude estimator that fuses
+two dissimilar range sources, a visual alignment law that acts on image-plane
+error, and a supervisory state machine that sequences alignment, descent, and
+flare. Fig.~\ref{fig:architecture} shows the arrangement.
+
+\subsubsection{Altitude Estimation}
+
+Barometric altitude is available at \SI{50}{\hertz} and tracks fast vertical
+motion, but drifts over the duration of a landing. A downward rangefinder is
+accurate in the mean but becomes noisy within a rotor diameter of the ground and
+reports at \SI{20}{\hertz}. The two are combined in a complementary filter that
+propagates the barometric increment and corrects toward the rangefinder,
+\begin{equation}
+  \hat{h}_k = (1-\kappa)\,\hat{h}_k^{-} + \kappa\, h^{\mathrm{rf}}_k ,
+  \qquad
+  \kappa = \frac{\Delta t}{\tau + \Delta t},
+  \label{eq:compfilter}
+\end{equation}
+where $\hat{h}_k^{-}$ is the barometric prediction, $h^{\mathrm{rf}}_k$ is the
+rangefinder measurement, $\Delta t$ is the elapsed interval, and $\tau$ is the
+blending time constant. When no rangefinder sample is available the estimate
+propagates on the barometric prediction alone, so that dropouts degrade the
+estimate gradually rather than interrupting it.
+
+\subsubsection{Visual Alignment}
+
+An AprilTag detector supplies the tag center in pixel coordinates
+$\mathbf{p} = [u, v]^{\mathsf{T}}$ over a local publish--subscribe transport.
+Detections arrive at \SI{8}{\hertz} while setpoints are streamed at
+\SI{50}{\hertz}, so the controller does not consume detections synchronously.
+Each arriving detection updates an exponential moving average,
+\begin{equation}
+  \bar{\mathbf{p}}_k = \alpha\, \mathbf{p}_k + (1-\alpha)\, \bar{\mathbf{p}}_{k-1},
+  \label{eq:ema}
+\end{equation}
+and the smoothed estimate is held between detections, which both attenuates
+detector jitter and supplies a value at every control cycle.
+
+The image error is taken with respect to the principal point
+$\mathbf{p}_c = [u_c, v_c]^{\mathsf{T}}$ and normalized by the half-width and
+half-height of the image, making the error dimensionless and equal in scale on
+both axes. Lateral velocity setpoints follow a proportional--derivative law in
+which the derivative term acts on measured body velocity rather than on a
+differentiated image error,
+\begin{equation}
+  v_x = -K_p \frac{v - v_c}{v_c} - K_d\, \tilde{v}_x ,
+  \qquad
+  v_y = -K_p \frac{u - u_c}{u_c} - K_d\, \tilde{v}_y ,
+  \label{eq:pd}
+\end{equation}
+where $\tilde{v}_x$ and $\tilde{v}_y$ are the estimated body-frame velocities.
+Differentiating the \SI{8}{\hertz} image signal would amplify detector noise at
+the \SI{50}{\hertz} setpoint rate, whereas the onboard velocity estimate is
+already available at full rate. Both components are saturated at
+$v^{\max}_{xy}$ before being issued.
+
+\subsubsection{Descent Sequencing}
+
+Vertical motion is gated on lateral convergence: descent is commanded only when
+the smoothed tag center lies within a radius $r_g$ of the principal point, and is
+suspended whenever the error leaves that radius. Below a flare altitude
+$h_f$ the descent rate is reduced from $v^{\max}_{z}$ to the touchdown rate
+$v_{\mathrm{td}}$ for contact. The supervisory state machine sequences
+\textsc{search}, \textsc{align}, \textsc{descend}, \textsc{flare}, and
+\textsc{done} (Fig.~\ref{fig:statemachine}).
+
+Tag detection is not guaranteed at every cycle. If no detection has been received
+for longer than a timeout $T_{\mathrm{to}}$, the controller issues the last valid
+setpoint scaled by one half, so that the vehicle coasts along its previous
+command with decaying authority instead of either freezing at full command or
+dropping to zero. If misses persist beyond $n_{\max}$ consecutive cycles the
+supervisor reverts to \textsc{search}. Controller parameters are listed in
+Table~\ref{tab:params}.
+
+\subsection{Experimental Setup}
+
+Experiments used a \SI{450}{\milli\meter} quadrotor running PX4~1.14 with a
+downward-facing global-shutter camera at $640 \times 480$ pixels and 8 frames
+per second. The landing platform was a treadmill-driven cart with a
+\SI{300}{\milli\meter}-radius deck translating at \SI{0.3}{\meter\per\second}, and
+carried a \SI{160}{\milli\meter} AprilTag of the 36h11 family. An OptiTrack
+motion-capture system sampling at \SI{120}{\hertz} provided ground truth for
+both vehicle and platform, from which the touchdown offset was computed.
+
+Two controller configurations were compared. The proposed configuration
+(\textit{vision}) uses the visually servoed law of \eqref{eq:pd} with the gated
+descent described above. The baseline configuration (\textit{baro}) disables the
+visual channel and commands an open-loop descent at $v^{\max}_{z}$, relying on
+altitude estimation alone; it represents landing without platform feedback. Both
+configurations share the same altitude estimator, setpoint rate, and airframe, so
+the comparison isolates the visual channel.
+
+Twelve landings were flown in each configuration ($N=12$ per mode), alternated
+between configurations so that battery state and ambient wind were distributed
+across both. The primary outcome was the touchdown offset, defined as the radial
+distance in the deck plane between the vehicle contact point and the deck center
+at the instant of contact. Secondary outcomes were the descent time, measured
+from the start of the descent phase to contact, and the landing success rate,
+defined as the proportion of trials with touchdown offset inside the
+\SI{300}{\milli\meter} deck radius.
+
+\subsection{Statistical Analysis}
+
+Touchdown offset and descent time are reported as mean $\pm$ standard deviation
+over the twelve trials of each configuration. Because trials were flown in
+alternating pairs under matched conditions, the two configurations were compared
+with a two-sided paired $t$-test on the touchdown offset, with significance at
+$\alpha = 0.05$. The paired mean difference is reported with its
+\SI{95}{\percent} confidence interval, since the interval conveys the magnitude
+of the improvement in millimeters whereas the $p$-value alone does not. Success
+rate is reported as a proportion of trials; no inferential test is applied to it,
+as twelve trials per configuration do not support one. Trials were additionally
+grouped by heading relative to the prevailing wind; that split is reported
+descriptively only, because the resulting subgroups are too small to test.
+
+\section{Results}
+
+\subsection{Touchdown Accuracy}
+
+The visually servoed configuration placed the vehicle within
+$46 \pm \SI{18}{\milli\meter}$ of the deck center, against
+$187 \pm \SI{92}{\milli\meter}$ for the altitude-only baseline
+(Table~\ref{tab:results}). The paired mean difference was
+\SI{141}{\milli\meter}, \SI{95}{\percent} CI $[98, 184]$~mm,
+$p = 0.0002$. The confidence interval excludes zero over its full width and its
+lower bound alone is a third of the deck radius.
+
+The two configurations also differ in spread, not only in center: the baseline
+standard deviation is five times that of the visual configuration
+(\SI{92}{\milli\meter} against \SI{18}{\milli\meter}). Fig.~\ref{fig:offsets}
+shows the per-trial offsets.
+
+\subsection{Landing Success}
+
+All twelve visually servoed landings finished inside the
+\SI{300}{\milli\meter} deck radius. Three of twelve baseline landings did not,
+that is, a success rate of \SI{100}{\percent} against \SI{75}{\percent}. The
+baseline failures are consistent with its dispersion: a mean of
+\SI{187}{\milli\meter} with a standard deviation of \SI{92}{\milli\meter} places
+the deck edge slightly beyond one standard deviation of the baseline
+distribution.
+
+\subsection{Descent Time}
+
+Visually servoed landings took $14.2 \pm \SI{1.9}{\second}$ from the start of
+descent to contact, against $9.8 \pm \SI{0.7}{\second}$ for the baseline. The
+visual configuration is therefore \SI{4.4}{\second} slower on average, and its
+trial-to-trial variation is larger. This follows from the descent gate: vertical
+motion is suspended whenever the lateral error leaves the gate radius, so the
+duration of a landing depends on how often the platform motion pushes the
+alignment out of tolerance, whereas the open-loop baseline descends at a fixed
+rate irrespective of alignment.
+
+\subsection{Sensitivity to Wind Heading}
+
+Within the visually servoed trials, offsets were
+$41 \pm \SI{15}{\milli\meter}$ downwind and $52 \pm \SI{20}{\milli\meter}$
+upwind. The two groups overlap within one standard deviation, and both remain
+well inside the deck radius.
+
+\subsection{Behavior Under Detection Dropout}
+
+One visually servoed trial contained two detection gaps exceeding the
+\SI{0.4}{\second} timeout. In both, the decaying-command hold engaged and the
+controller re-acquired the tag and completed the landing within the deck radius.
+No trial in either configuration was aborted.
+
+% ---------------------------------------------------------------------------
+% Tables
+% ---------------------------------------------------------------------------
+
+\begin{table}[!t]
+\caption{Controller Parameters}
+\label{tab:params}
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llc}
+\toprule
+Parameter & Symbol & Value \\
+\midrule
+Setpoint rate                 & --                    & \SI{50}{\hertz} \\
+Tag detection rate            & --                    & \SI{8}{\hertz} \\
+Smoothing coefficient         & $\alpha$              & 0.35 \\
+Lateral proportional gain     & $K_p$                 & 0.9 \\
+Lateral derivative gain       & $K_d$                 & 0.15 \\
+Lateral speed limit           & $v^{\max}_{xy}$       & \SI{1.2}{\meter\per\second} \\
+Vertical speed limit          & $v^{\max}_{z}$        & \SI{0.5}{\meter\per\second} \\
+Descent gate radius           & $r_g$                 & 40 px \\
+Detection timeout             & $T_{\mathrm{to}}$     & \SI{0.4}{\second} \\
+Consecutive-miss limit        & $n_{\max}$            & 3 \\
+Flare altitude                & $h_f$                 & \SI{0.35}{\meter} \\
+Touchdown descent rate        & $v_{\mathrm{td}}$     & \SI{0.25}{\meter\per\second} \\
+Altitude blending constant    & $\tau$                & \SI{0.8}{\second} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!t]
+\caption{Landing Performance Over Twelve Trials Per Configuration}
+\label{tab:results}
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccc}
+\toprule
+Metric & Vision & Baseline & $p$ \\
+\midrule
+Touchdown offset (mm)   & $46 \pm 18$    & $187 \pm 92$  & 0.0002 \\
+Descent time (s)        & $14.2 \pm 1.9$ & $9.8 \pm 0.7$ & -- \\
+Landings on deck        & 12/12          & 9/12          & -- \\
+\bottomrule
+\end{tabular}
+\end{table}

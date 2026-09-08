@@ -1,6 +1,7 @@
 {
     "version": "2.0.1",
     "autoload": {
-        "2.4G Mouse": "custom-buttons"
+        "2.4G Mouse": "custom-buttons",
+        "Kensington Expert Mouse": "custom-buttons"
     }
 }

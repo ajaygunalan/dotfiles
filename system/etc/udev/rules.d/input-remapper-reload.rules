@@ -1,0 +1,3 @@
+# Reload input-remapper presets when 2.4G Mouse reconnects
+# Fixes: https://github.com/sezanzeb/input-remapper/issues/927
+ACTION=="add", SUBSYSTEM=="input", ATTRS{idVendor}=="1ea7", ATTRS{idProduct}=="0064", KERNEL=="event*", TAG+="systemd", ENV{SYSTEMD_WANTS}="input-remapper-reload.service"

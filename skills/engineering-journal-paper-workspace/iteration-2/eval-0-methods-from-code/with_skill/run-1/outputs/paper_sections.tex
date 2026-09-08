@@ -1,0 +1,223 @@
+% Methods and Results sections, IEEEtran (pdfLaTeX).
+% Preamble requirements: \usepackage{amsmath,amssymb,graphicx,booktabs,siunitx}
+% Bibliography keys used: apriltag, px4, mavsdk.
+% Lines marked "AUTHOR QUERY" must be resolved and stripped before submission.
+
+\section{Methods}
+
+We compare two landing controllers that differ only in how the horizontal velocity
+command is generated. The \emph{vision-guided controller} servoes the vehicle on the
+image-plane position of a fiducial marker mounted on the platform deck. The
+\emph{barometric controller} descends at a constant rate with no horizontal command and
+serves as the baseline. Both controllers stream velocity setpoints to the flight
+controller at \SI{50}{\hertz} through the vehicle's onboard autopilot
+interface\footnote{PX4 v1.14.}~\cite{px4,mavsdk}. Fig.~\ref{fig:block} shows the
+arrangement.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\columnwidth]{fig_block_diagram.pdf}
+  \caption{Landing controller architecture. Fiducial detections from the downward camera
+  are smoothed and differenced against the image center to form the horizontal velocity
+  command, while the fused altitude estimate gates descent and selects the touchdown
+  rate. The barometric controller omits the camera, detector, and image-error blocks.}
+  \label{fig:block}
+\end{figure}
+
+\subsection{Landing Guidance from Image-Plane Error}
+
+A downward-facing camera observes a square fiducial marker at the center of the platform
+deck, and a detector reports the marker center in pixel coordinates~\cite{apriltag}.
+Because the camera looks along the vehicle's vertical axis, the two image axes map
+one-to-one onto the two horizontal body axes, and driving the marker to the image center
+drives the vehicle over the deck center. No range or pose reconstruction is therefore
+required, and the guidance law acts directly on pixel error.
+
+Detections arrive an order of magnitude more slowly than setpoints are streamed, so most
+control cycles execute without a new measurement. Two mechanisms bridge the gap. The
+detected marker center is smoothed by an exponential moving average filter, and between
+detections the controller continues to act on the most recent smoothed estimate. Let
+$(\bar{u},\bar{v})$ denote the smoothed marker center and $(u_0,v_0)$ the image center.
+The normalized image error is given by
+\begin{equation}
+  e_u = \frac{\bar{u}-u_0}{u_0}, \qquad
+  e_v = \frac{\bar{v}-v_0}{v_0},
+  \label{eq:err}
+\end{equation}
+where $e_u$ is the lateral image error and $e_v$ is the longitudinal image error, each
+normalized so that unity corresponds to the marker lying at the image border.
+
+The horizontal velocity command is given by
+\begin{equation}
+  \begin{aligned}
+    v_x &= \operatorname{sat}\!\left(-k_p\,e_v - k_d\,\dot{x},\; v_h^{\max}\right),\\
+    v_y &= \operatorname{sat}\!\left(-k_p\,e_u - k_d\,\dot{y},\; v_h^{\max}\right),
+  \end{aligned}
+  \label{eq:guidance}
+\end{equation}
+where $v_x$ and $v_y$ are the commanded longitudinal and lateral velocities; $k_p$ is the
+proportional gain on normalized image error; $k_d$ is the damping gain; $\dot{x}$ and
+$\dot{y}$ are the measured horizontal velocities of the vehicle; $v_h^{\max}$ is the
+horizontal speed limit; and $\operatorname{sat}(a,b)=\min(\max(a,-b),b)$ is the symmetric
+saturation.
+
+The damping term in~\eqref{eq:guidance} acts on the measured vehicle velocity rather than
+on a numerical derivative of the image error. Differentiating the image error would
+amplify detection noise at the camera frame rate, whereas the velocity estimate is
+available at the full setpoint rate.
+
+When no detection has arrived for longer than a fixed timeout, the controller applies a
+halved copy of the last command it issued. This decay hold keeps the vehicle drifting
+with the platform instead of stopping over ground during a dropout, and it is the
+behavior invoked by the dropout events reported in Section~\ref{sec:results}.
+
+\subsection{Altitude Estimation and Touchdown}
+
+Two altitude sources are available. The barometer is continuous but drifts, and the
+downward rangefinder is unbiased but noisy near the ground and intermittent. The altitude
+estimate is given by
+\begin{equation}
+  \hat{h}_k = (1-\kappa)\,h_k^{\mathrm{baro}} + \kappa\,h_k^{\mathrm{range}},
+  \qquad \kappa = \frac{\Delta t}{\tau + \Delta t},
+  \label{eq:alt}
+\end{equation}
+where $\hat{h}_k$ is the altitude estimate at cycle $k$; $h_k^{\mathrm{baro}}$ and
+$h_k^{\mathrm{range}}$ are the barometric and rangefinder measurements; $\Delta t$ is the
+control period; and $\tau$ is the blending time constant. When no rangefinder return is
+available, the barometric measurement is used directly. The estimate is thus a
+first-order blend that low-pass filters the rangefinder against the barometer, and it
+does not high-pass the barometric channel.
+% AUTHOR QUERY: the implementation names this filter "complementary" but computes the
+% blend above, in which the barometric term enters at full magnitude rather than as an
+% increment. Equation (3) reports what is implemented. Confirm this is intended before
+% submission, and correct either the code or this paragraph, not only the paragraph.
+
+Descent is gated on alignment. The vertical velocity command is given by
+\begin{equation}
+  v_z =
+  \begin{cases}
+    -v_z^{\mathrm{td}}, & \hat{h} < h_f,\\[2pt]
+    -v_z^{\max}, & \hat{h} \ge h_f \ \text{and}\ \lVert \bar{\mathbf{p}} - \mathbf{p}_0 \rVert < \rho,\\[2pt]
+    0, & \text{otherwise},
+  \end{cases}
+  \label{eq:vz}
+\end{equation}
+where $v_z$ is the commanded vertical velocity, positive upward; $v_z^{\mathrm{td}}$ is
+the reduced touchdown descent rate; $h_f$ is the flare altitude; $v_z^{\max}$ is the
+cruise descent rate; $\bar{\mathbf{p}}$ and $\mathbf{p}_0$ are the smoothed marker center
+and the image center; and $\rho$ is the alignment radius in pixels. Above the flare
+altitude the vehicle descends only while the marker lies within $\rho$ of the image
+center, so horizontal error is reduced before altitude is given up. Below the flare
+altitude the first case of~\eqref{eq:vz} takes precedence, and the vehicle descends at
+the reduced rate whether or not it is aligned. Committing to touchdown in this way avoids
+holding altitude in the region where the rangefinder is noisiest and where ground effect
+perturbs the horizontal loop, at the cost of leaving any residual alignment error
+uncorrected over the final $h_f$ of descent.
+
+\subsection{Baseline Controller}
+
+The barometric controller commands zero horizontal velocity and a constant descent rate
+$v_z^{\max}$ until touchdown. It neither gates descent on alignment nor reduces the
+descent rate near the ground, and it does not read the altitude estimate at all, so it
+represents open-loop descent onto the platform's last known position. Comparing against
+it isolates the contribution of the image-plane guidance law, because the two
+controllers share the vehicle, the setpoint interface, and the cruise descent rate.
+
+\subsection{Experimental Setup}
+
+Experiments used a \SI{450}{\milli\meter} quadrotor carrying a downward-facing
+global-shutter camera at $640\times480$ pixels. The camera streams at \SI{8}{\hertz},
+against a \SI{50}{\hertz} setpoint rate. The landing target was a
+\SI{160}{\milli\meter} AprilTag
+36h11 marker at the center of a cart deck of \SI{300}{\milli\meter} radius, towed at a
+constant \SI{0.3}{\meter\per\second}. Fig.~\ref{fig:setup} shows the apparatus.
+
+Ground truth came from an OptiTrack motion capture system sampling at
+\SI{120}{\hertz}, which tracked both the vehicle and the deck throughout each descent.
+Gains, filter constants, and the alignment radius were selected empirically for this
+airframe and camera, and represent values tuned for this apparatus rather than
+recommended settings.
+
+We flew 12 landings with each controller, alternating between them so that each
+vision-guided landing is paired with a barometric landing flown under matched platform
+and wind conditions.
+% AUTHOR QUERY: the lab notes record a paired analysis but do not state the pairing
+% scheme. Confirm the alternation described here, or replace with the scheme actually
+% flown.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\columnwidth]{fig_setup.pdf}
+  \caption{Experimental apparatus. Callouts identify the quadrotor, the downward camera,
+  the AprilTag marker at the deck center, the \SI{300}{\milli\meter} deck boundary, and
+  the motion capture markers used for ground truth.}
+  \label{fig:setup}
+\end{figure}
+
+\subsection{Metrics and Statistical Analysis}
+
+The primary metric is the touchdown offset, defined as the horizontal distance between
+the vehicle center and the deck center at the instant of touchdown, measured by motion
+capture.
+% AUTHOR QUERY: confirm the reference points (vehicle center versus landing-gear
+% centroid) used to compute the offset from the motion capture data.
+A landing is recorded as contained when the touchdown offset is smaller than the
+\SI{300}{\milli\meter} deck radius. Descent duration is the interval between the start of
+the commanded descent and touchdown.
+
+Touchdown offsets are summarized as mean $\pm$ standard deviation, which reports the
+absolute accuracy and its repeatability across trials. The two controllers are compared
+by a two-sided paired $t$-test on the touchdown offset, with the paired difference and its
+\SI{95}{\percent} confidence interval reporting the size and precision of the change.
+Because a single confirmatory comparison was specified, no correction for multiple
+comparisons was applied. Containment and descent duration are reported descriptively.
+
+\section{Results}
+\label{sec:results}
+
+Table~\ref{tab:results} summarizes both controllers over the 12 paired landings. Image
+guidance reduced the mean touchdown offset by roughly three quarters, from
+\SI{187}{\milli\meter} to \SI{46}{\milli\meter} (paired difference
+\SI{141}{\milli\meter}, \SI{95}{\percent} CI [98, 184], $p = 2\times10^{-4}$).
+Trial-to-trial dispersion fell by a factor of 5.1, from a standard deviation of
+\SI{92}{\milli\meter} to \SI{18}{\milli\meter}.
+
+All 12 vision-guided landings were contained within the deck radius. Three of the 12
+barometric landings were not. Fig.~\ref{fig:offsets} shows the per-trial offsets against
+the deck boundary.
+
+Descent duration was $14.2 \pm \SI{1.9}{\second}$ for the vision-guided controller and
+$9.8 \pm \SI{0.7}{\second}$ for the barometric controller, a difference of
+\SI{4.4}{\second}.
+
+In one vision-guided trial the marker was lost twice for longer than the detection
+timeout. The decay hold was applied on both occasions, and detections resumed before
+touchdown. No other vision-guided trial recorded a dropout beyond the timeout.
+
+\begin{table}[!t]
+  \centering
+  \caption{Landing Performance Over 12 Paired Trials. Differences Are Vision-Guided
+  Minus Barometric}
+  \label{tab:results}
+  \setlength{\tabcolsep}{3pt}
+  \footnotesize
+  \begin{tabular}{lccc}
+    \toprule
+    & Vision-guided & Barometric & Difference [95\% CI] \\
+    \midrule
+    Touchdown offset (mm) & $46 \pm 18$ & $187 \pm 92$ & $-141$ $[-184, -98]$ \\
+    Within deck radius    & 12/12 & 9/12 & --- \\
+    Descent duration (s)  & $14.2 \pm 1.9$ & $9.8 \pm 0.7$ & $+4.4$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\columnwidth]{fig_offsets.pdf}
+  \caption{Touchdown offsets for each of the 12 paired landings. Filled circles mark
+  vision-guided landings and open squares mark barometric landings, with paired trials
+  joined by a line. The horizontal dashed line marks the \SI{300}{\milli\meter} deck
+  radius, beyond which a landing missed the platform.}
+  \label{fig:offsets}
+\end{figure}

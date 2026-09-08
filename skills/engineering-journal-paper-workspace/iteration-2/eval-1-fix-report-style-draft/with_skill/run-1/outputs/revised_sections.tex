@@ -1,0 +1,127 @@
+\section{Methods}
+
+\subsection{Wall-Following Control}
+
+The crawler holds a commanded standoff from the pipe wall for the duration of a
+traverse. We define the standoff error as
+%
+\begin{equation}
+e(t) = d^{\star} - \hat{d}(t),
+\end{equation}
+%
+where $d^{\star}$ is the commanded standoff and $\hat{d}(t)$ is the estimated distance
+from the crawler to the wall. A proportional--derivative law drives this error to zero
+through a lateral velocity correction,
+%
+\begin{equation}
+u(t) = \mathrm{sat}\!\left(k_{p}\,e(t) + k_{d}\,\dot{e}(t),\; u_{\max}\right),
+\end{equation}
+%
+where $k_{p}$ and $k_{d}$ are the proportional and derivative gains, $u_{\max}$ bounds
+the lateral correction, and
+$\mathrm{sat}(x, x_{\max}) = \min(\max(x, -x_{\max}), x_{\max})$. The bound $u_{\max}$
+keeps a single correction from stalling one track against the wall. The correction
+$u(t)$ is applied as a differential velocity between the two tracks, and the common
+track velocity sets the traverse speed. Track velocity commands are issued to the drive
+electronics at 100~Hz.
+
+\subsection{Wall-Distance Estimation}
+
+Two time-of-flight sensors mounted on the chassis observe the pipe wall. Their
+measurements are low-pass filtered to reject sensor noise and fused by an extended
+Kalman filter into the estimate $\hat{d}$ that enters~(1).
+% AUTHORS: the draft never states what the filter's state vector contains, nor which
+% part of the measurement model is nonlinear (the reason an extended rather than a
+% linear filter is required). One sentence on each is needed here. Filter covariances
+% and the divergence/iteration guards from the draft are deliberately omitted: they
+% are tuning and defensive implementation, and carry no argument.
+
+\subsection{Thermal Compensation}
+
+The time-of-flight sensors drift as their mount heats during a traverse, and this drift
+enters $\hat{d}$ as a slowly growing bias. The bias develops on a timescale comparable
+to a single traverse, so neither the low-pass filter nor the estimator removes it. We
+therefore add a reference sensor at the front bulkhead and correct the two wall-facing
+measurements using its output.
+% AUTHORS: the compensation law itself is absent from the draft -- what the reference
+% sensor observes, and how its reading maps to a correction on the wall-facing
+% measurements. This is the paper's contribution and currently has no home in the
+% manuscript; it belongs here, as an equation.
+
+This defines the two controllers compared in this work. The \emph{compensated
+controller} applies the reference correction. The \emph{uncompensated controller} uses
+the wall-facing measurements directly. The two share every other element of the control
+software.
+
+\subsection{Experimental Setup}
+
+Experiments were carried out in a 12~m test pipe. The crawler was placed at the pipe
+entrance and traversed the pipe autonomously at 0.1~m/s under closed-loop wall
+following. Wall distance was logged at the control rate throughout each traverse.
+
+\subsection{Protocol and Analysis}
+
+We performed 16 traverses, alternating between the compensated and the uncompensated
+controller, for eight traverses per controller. Performance is reported as the absolute
+wall-distance error $|e(t)|$, averaged over a traverse and summarized across traverses
+as mean $\pm$ SD. Two traverses in which the error did not reach the 5~mm band before
+the midpoint of the pipe were excluded from the aggregate statistics.
+% AUTHORS: two points on this exclusion. (1) It reads as post hoc. Either state that
+% the criterion was fixed before the campaign, or report all 16 traverses and let the
+% two outliers appear in the dispersion -- the latter is the stronger paper.
+% (2) State which controller the two excluded traverses ran under; if both were
+% uncompensated, the exclusion biases the comparison and a reviewer will find it.
+% AUTHORS: the alternating design is paired, so the controller comparison should be
+% reported as a paired difference with a 95% CI rather than as two independent means.
+% That analysis is not described here because the draft does not report having run it.
+
+\section{Results}
+
+Fig.~3 shows the wall-distance error along a traverse for both controllers. Under the
+compensated controller the mean absolute error was 3.1~mm.
+% AUTHORS: the aggregate SD is missing from the draft and is required alongside the
+% mean. Report as "3.1 $\pm$ X.X mm".
+
+The uncompensated controller held a lower absolute error over the first 30~s of a
+traverse. Beyond 30~s the error under the uncompensated controller grew for the
+remainder of the traverse, whereas the error under the compensated controller showed no
+comparable growth.
+% AUTHORS: this paragraph needs the uncompensated controller's aggregate mean $\pm$ SD
+% and the difference between controllers expressed as a percentage or ratio. The draft
+% reports no aggregate number for the uncompensated controller at all, so the headline
+% comparison the paper exists to make is currently unquantified. The directional
+% split from the draft (+2.8 $\pm$ 1.1 mm clockwise, -3.4 $\pm$ 1.6 mm
+% counterclockwise) is omitted here: signed, direction-split error is an agreement
+% analysis, and the claim under test is magnitude of tracking error, not directional
+% bias. Restore the split only if direction dependence is itself a finding.
+
+\begin{figure}
+\caption{Wall-distance error along a traverse under the compensated and the
+uncompensated controller. Curves are the mean across traverses and shaded bands span
+one standard deviation. The dashed line marks the 5~mm error band. Values are for eight
+traverses per controller.}
+\end{figure}
+% AUTHORS: the caption decodes curves, bands, and a reference line. Match these to what
+% the figure actually plots, and state which color belongs to which controller.
+
+% ---------------------------------------------------------------------------
+% MOVED OUT OF RESULTS -- belongs in Discussion. Preserved verbatim in substance so
+% nothing is lost; Results carries evidence only, and interpretation is Discussion's
+% job.
+%
+% 1. Interpretation of the compensated result:
+%    "The reduction in wall-distance error under the compensated controller supports
+%    placing the reference sensor at the front bulkhead, where it observes the same
+%    thermal environment as the wall-facing sensors."
+%
+% 2. Interpretation of the 30 s crossover:
+%    "The uncompensated controller degrades only after roughly 30 s, which is
+%    consistent with the thermal time constant of the sensor mount."
+%    (Hedged to "consistent with" -- one observation matching one mechanism supports
+%    possibility, not assertion.)
+%
+% 3. Limitation, reframed so it states the bound rather than what was unavailable:
+%    "Validation was carried out in a clean test pipe. The controller is not restricted
+%    to clean pipe, and extending the validation to corroded sections would require
+%    only access to a decommissioned line."
+% ---------------------------------------------------------------------------
