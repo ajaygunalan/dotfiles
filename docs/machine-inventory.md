@@ -98,6 +98,8 @@ Written 2026-09-08 after the pre-reinstall cleanup. Source of truth for the Ubun
 | Docker | isolated environments | UR simulator (`ursim`) ships only as an image; grouting project container | core |
 | gh, git-lfs, direnv, pre-commit, [stow](https://www.gnu.org/software/stow/) | git and dotfiles plumbing | stow links dotfiles into `~` | core |
 | build-essential, cmake, clang | C++ for ROS | | core |
+| [try](https://github.com/tobi/try) by Tobi Lütke ([page](https://pages.tobi.lutke.com/try/)) | CLI that gives every experiment its own dated folder under one root, with fuzzy jump between them | `try new-idea` creates `~/src/tries/2026-09-08-new-idea/` and cds there; `try` alone lists and jumps. This is the `~/scratch` rule made into a tool. Ruby gem: `gem install try-cli`, Ruby via mise; then `alias t=try` | to try on 26.04 |
+| [Tailscale](https://tailscale.com) | private network between laptop, phone, lab PC; enables SSH and remote access from anywhere | not installed today; add with `openssh-server` only if remote access is wanted. LocalSend covers same-Wi-Fi file drops | to decide |
 
 ## 8. Robotics
 
@@ -143,7 +145,7 @@ Written 2026-09-08 after the pre-reinstall cleanup. Source of truth for the Ubun
 ## 11. Rules that came out of this
 
 1. **Every file has one home.** Code in git. Documents and data in gdrive. Everything else is disposable.
-2. **Home layout:** `~/code` (repos), `~/gdrive` (synced), `~/scratch` (experiments, purge freely), `Downloads` (auto-purge). Nothing loose in `~`.
+2. **Home layout:** `~/code` (repos), `~/gdrive` (synced), `~/scratch` (experiments, purge freely; candidate tool: `try`, which dates and indexes each experiment folder), `Downloads` (auto-purge). Nothing loose in `~`.
 3. **Repo data lives outside the repo.** `data/` and `runs/` are gitignored symlinks into `~/gdrive/data/<project>`.
 4. **uv only.** One shared GPU venv for experiments. Finishing an experiment means deleting its model too (`hf cache delete`).
 5. **Skills have one source:** `~/dotfiles/skills`, linked by `link-skills.sh`.
