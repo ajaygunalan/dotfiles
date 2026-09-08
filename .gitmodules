@@ -1,0 +1,3 @@
+[submodule "skills/ros2-engineering-skills"]
+	path = skills/ros2-engineering-skills
+	url = https://github.com/ajaygunalan/ros2-engineering-skills.git
