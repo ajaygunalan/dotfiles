@@ -152,11 +152,25 @@ Written 2026-09-08 after the pre-reinstall cleanup. Source of truth for the Ubun
 6. **Machine setup is code.** This file plus dotfiles plus an install script is the bootstrap. Secrets go in one age-encrypted file, never in git.
 7. **Delete nothing without looking at it first.**
 
-## 12. Open for the 26.04 install
+## 12. The plan (decided 2026-09-08): Arch daily, Ubuntu for robots
 
-- Partition: EFI + ~100 GB root + rest as `/home`. Decide on deleting Windows.
-- autorandr and the hotplug scripts need a Wayland replacement.
-- Launcher: Omabuntu's Walker, or bind rofi.
+**Two Linuxes, one data partition.** [Omarchy](https://omarchy.org) (Arch + Hyprland) is the daily driver. Ubuntu 26.04 is a minimal robot appliance: stock install, NVIDIA, `ubuntu-realtime` kernel, ROS 2 Lyrical, UR driver, Docker, workspace clones. No Omabuntu, no theming on the Ubuntu side. Windows is deleted.
+
+| Partition | Size | FS | Purpose |
+|---|---|---|---|
+| EFI | 1 GB | FAT | shared |
+| Ubuntu root | 80 GB | ext4 | OS + ROS, home inside |
+| Arch root | 150 GB | btrfs | Omarchy default, snapshots |
+| data | ~700 GB | ext4 | `gdrive`, `code`, `scratch`; mounted in both, same UID 1000, `~/gdrive` and `~/code` are symlinks into it |
+
+Install order: Ubuntu first (80 GB), then Omarchy into the free space (its installer supports install-beside when free space exists). Verify at install time which bootloader lists both (Limine vs GRUB).
+
+Known Omarchy risks on this laptop (Intel + RTX 4060 hybrid): suspend/hibernate issues, session-wide NVIDIA env vars, deprecated supergfxctl. Acceptable because Ubuntu is the fallback for robot days. Do not install `linux-rt` on the Arch side; RT lives on Ubuntu.
+
+Same dotfiles on both: bash, Ghostty, Starship, `link-skills.sh`. Arch-side extras via AUR: input-remapper, google-chrome, zoom, obsidian.
+
+- autorandr and the hotplug scripts need a Wayland replacement on both sides (Hyprland has its own monitor config).
+- Launcher: Omarchy's Walker on Arch; nothing needed on Ubuntu.
 - ROS 2 Lyrical: rebuild admittance and hybrid-force controllers, check API changes.
 - Move API keys out of `~/.codex/config.toml` into env vars.
 - Still to move: `~/to-gdrive` remainder, rcm_qp_drake `data/` + `runs/` (12 GB), jhu_eirb has no remote, ajay-websites not in git.
