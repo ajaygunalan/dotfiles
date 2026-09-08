@@ -38,9 +38,8 @@ Written 2026-09-08 after the pre-reinstall cleanup. Source of truth for the Ubun
 | [gum](https://github.com/charmbracelet/gum) | menus/prompts for bash scripts | Omabuntu's installer uses it; write your own scripts in Python instead | default |
 | [chafa](https://hpjansson.org/chafa/) | draws an image in the terminal | `chafa figure.png` to peek at a plot | default |
 | [ranger](https://ranger.fm) | three-column file manager in the terminal | `ranger`; hjkl move, Enter open, `dd`/`yy`/`pp` cut/copy/paste, `q` quit | core |
-| nano | modeless editor, commands shown on screen | `Ctrl+O` save, `Ctrl+X` exit | default |
-| [Neovim](https://neovim.io) + [LazyVim](https://www.lazyvim.org) | modal terminal editor, Omabuntu-configured | `nvim file`; `i` type, `Esc`, `:w` save, `:q!` quit, `Space` menu. Default `$EDITOR`. | default, not learning it now |
-| [fresh](https://github.com/sinelaw/fresh) | non-modal terminal editor with multi-cursor | `fresh file` when a terminal edit is bigger than nano | core |
+| [fresh](https://github.com/sinelaw/fresh) | non-modal terminal editor with multi-cursor, no modes to learn | `fresh file`; **default `$EDITOR`** (git commit messages, crontab open here). Set in `.bashrc`, overrides Omabuntu's nvim | core |
+| nano | modeless fallback editor, commands shown on screen | `Ctrl+O` save, `Ctrl+X` exit; present on any Linux box | default |
 
 ## 3. Editors and AI tools
 
@@ -126,6 +125,7 @@ Written 2026-09-08 after the pre-reinstall cleanup. Source of truth for the Ubun
 | Removed | Why |
 |---|---|
 | Warp, terminator, Alacritty | Ghostty does everything they did |
+| Neovim + LazyVim (Omabuntu's `omakub-nvim`) | modal editing not worth learning; fresh is the terminal editor. Omabuntu will reinstall it on 26.04, remove again or skip in the installer |
 | Zellij, tmux | did not want multiplexers; Ghostty splits |
 | VS Code | replaced by Zed; notebooks via JupyterLab |
 | Opera, Blender, MeshLab, geany | unused |

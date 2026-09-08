@@ -24,7 +24,15 @@ rl() {
   local root="$HOME/gdrive/_robo_thesis/repositories/robot-learning"
   local n; printf -v n '%02d' "$1" 2>/dev/null || { echo "rl: need a lab number 1-10"; return 1; }
   shift
-  local lab; lab=$(basename "$(ls -d "$root/${n}-"* 2>/dev/null | head -1)")
-  [ -n "$lab" ] || { echo "rl: no lab matching '$n'"; return 1; }
-  ( cd "$root/$lab" && UV_PROJECT_ENVIRONMENT="$HOME/.venvs/robot-learning/$lab" uv run "$@" )
+  local match=("$root/${n}-"*/)            # glob the lab dir (avoids aliased ls)
+  [ -d "${match[0]}" ] || { echo "rl: no lab matching '$n'"; return 1; }
+  local lab; lab=$(basename "${match[0]}")
+  ( builtin cd "$root/$lab" && UV_PROJECT_ENVIRONMENT="$HOME/.venvs/robot-learning/$lab" uv run "$@" )
 }
+
+# ElevenLabs narrator for chapter-to-synced-lecture (Mark)
+export ELEVENLABS_VOICE_ID=8sGzMkj2HZn6rYwGx6G0   # thomas (lecture default)
+
+# editor: fresh (non-modal); overrides Omabuntu default of nvim
+export EDITOR="fresh"
+export SUDO_EDITOR="fresh"
