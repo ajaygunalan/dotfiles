@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Check if input file is provided
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <video_file>"
+    echo "Example: $0 myvideo.mkv"
+    exit 1
+fi
+
+# Input video file
+INPUT_VIDEO="$1"
+
+# Check if input file exists
+if [ ! -f "$INPUT_VIDEO" ]; then
+    echo "Error: File '$INPUT_VIDEO' not found!"
+    exit 1
+fi
+
+# Extract base name without extension
+BASENAME="${INPUT_VIDEO%.*}"
+EXTENSION="${INPUT_VIDEO##*.}"
+
+# Define intermediate and output file names
+AUDIO_RAW="${BASENAME}_raw_audio.wav"
+NOISE_PROFILE="${BASENAME}_noise_profile.prof"
+AUDIO_CLEAN="${BASENAME}_denoised_audio.wav"
+OUTPUT_VIDEO="${BASENAME}_cleaned_video.mp4"
+
+echo "Processing: $INPUT_VIDEO"
+echo "==========================================="
+
+# Step 1: Extract audio from video (track 1)
+echo "Step 1: Extracting audio..."
+ffmpeg -y -i "$INPUT_VIDEO" -map 0:a:0 -vn -ar 48000 "$AUDIO_RAW"
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to extract audio"
+    exit 1
+fi
+echo "Audio extracted to: $AUDIO_RAW"
+
+# Step 2: Build noise profile from first 10 seconds
+echo ""
+echo "Step 2: Building noise profile..."
+sox "$AUDIO_RAW" -n trim 0 10 noiseprof "$NOISE_PROFILE"
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to create noise profile"
+    exit 1
+fi
+echo "Noise profile created: $NOISE_PROFILE"
+
+# Step 3: Apply noise reduction and high-pass filter
+echo ""
+echo "Step 3: Applying noise reduction..."
+sox "$AUDIO_RAW" "$AUDIO_CLEAN" noisered "$NOISE_PROFILE" 0.21 highpass 80
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to apply noise reduction"
+    exit 1
+fi
+echo "Denoised audio created: $AUDIO_CLEAN"
+
+# Step 4: Replace audio in video with cleaned audio
+echo ""
+echo "Step 4: Remuxing video with cleaned audio..."
+ffmpeg -y -i "$INPUT_VIDEO" -i "$AUDIO_CLEAN" -map 0:v:0 -map 1:a:0 -c:v copy -shortest "$OUTPUT_VIDEO"
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to create final video"
+    exit 1
+fi
+
+echo ""
+echo "==========================================="
+echo "Success! Cleaned video saved as: $OUTPUT_VIDEO"
+
+# Optional: Ask if user wants to keep intermediate files
+echo ""
+read -p "Do you want to delete intermediate files? (y/n): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "Cleaning up intermediate files..."
+    rm -f "$AUDIO_RAW" "$NOISE_PROFILE" "$AUDIO_CLEAN"
+    echo "Intermediate files deleted."
+else
+    echo "Intermediate files kept:"
+    echo "  - $AUDIO_RAW"
+    echo "  - $NOISE_PROFILE"
+    echo "  - $AUDIO_CLEAN"
+fi
+
+echo "Done!"

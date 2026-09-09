@@ -1,0 +1,5 @@
+#!/bin/bash
+file="${1#rerun://}"
+cd /home/ajay/code/rcm_qp_drake
+source scripts/activate.sh
+rerun "$file"
