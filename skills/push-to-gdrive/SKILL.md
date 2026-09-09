@@ -1,5 +1,5 @@
 ---
-name: gdrive
+name: push-to-gdrive
 description: Google Drive operations for the local gdrive folder — push to Drive with rclone (scope decided by the current directory), and Drive account admin (list file owners, transfer ownership to another account). Use for "push to gdrive", "back up gdrive", "who owns these Drive files", "transfer Drive ownership".
 allowed-tools:
   - Bash
