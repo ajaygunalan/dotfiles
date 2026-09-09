@@ -8,7 +8,7 @@ allowed-tools:
 
 ## Push to Drive
 
-The local gdrive folder is `~/gdrive` (a symlink to the real location). Scope comes from the current directory:
+The local gdrive folder is `/media/ajay/gdrive` (a symlink to the real location). Scope comes from the current directory:
 
 1. `pwd`.
 2. If cwd is the gdrive root: source = the root, dest = `gdrive:`.
@@ -19,7 +19,7 @@ Say what will be pushed before running:
 
 ```bash
 rclone copy <source> <dest> \
-  --exclude-from ~/gdrive/.rcloneignore \
+  --exclude-from /media/ajay/gdrive/.rcloneignore \
   --transfers 3 --verbose --stats-one-line --stats 10s
 ```
 

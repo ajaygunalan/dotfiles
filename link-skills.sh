@@ -13,7 +13,7 @@ for target in "$HOME/.claude/skills" "$HOME/.agents/skills"; do
 done
 # Skills that live elsewhere on purpose (large, or referenced by other pipelines):
 EXTRA=(
-  "$HOME/gdrive/lecture/chapter-to-synced-lecture"
+  "/media/ajay/gdrive/lecture/chapter-to-synced-lecture"
 )
 for e in "${EXTRA[@]}"; do
   [ -d "$e" ] || continue

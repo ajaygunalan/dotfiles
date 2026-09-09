@@ -145,8 +145,8 @@ Written 2026-09-08 after the pre-reinstall cleanup. Source of truth for the Ubun
 ## 11. Rules that came out of this
 
 1. **Every file has one home.** Code in git. Documents and data in gdrive. Everything else is disposable.
-2. **Home layout:** `~/code` (repos), `~/gdrive` (synced), `~/scratch` (experiments, purge freely; candidate tool: `try`, which dates and indexes each experiment folder), `Downloads` (auto-purge). Nothing loose in `~`.
-3. **Repo data lives outside the repo.** `data/` and `runs/` are gitignored symlinks into `~/gdrive/data/<project>`.
+2. **Home layout:** `~/code` (repos), `/media/ajay/gdrive` (synced), `~/scratch` (experiments, purge freely; candidate tool: `try`, which dates and indexes each experiment folder), `Downloads` (auto-purge). Nothing loose in `~`.
+3. **Repo data lives outside the repo.** `data/` and `runs/` are gitignored symlinks into `/media/ajay/gdrive/data/<project>`.
 4. **uv only.** One shared GPU venv for experiments. Finishing an experiment means deleting its model too (`hf cache delete`).
 5. **Skills have one source:** `~/dotfiles/skills`, linked by `link-skills.sh`.
 6. **Machine setup is code.** This file plus dotfiles plus an install script is the bootstrap. Secrets go in one age-encrypted file, never in git.
@@ -161,7 +161,7 @@ Written 2026-09-08 after the pre-reinstall cleanup. Source of truth for the Ubun
 | EFI | 1 GB | FAT | shared |
 | Ubuntu root | 80 GB | ext4 | OS + ROS, home inside |
 | Arch root | 150 GB | btrfs | Omarchy default, snapshots |
-| data | ~700 GB | ext4 | `gdrive`, `code`, `scratch`; mounted in both, same UID 1000, `~/gdrive` and `~/code` are symlinks into it |
+| data | ~700 GB | ext4 | `gdrive`, `code`, `scratch`; mounted in both, same UID 1000, `/media/ajay/gdrive` and `~/code` are symlinks into it |
 
 Install order: Ubuntu first (80 GB), then Omarchy into the free space (its installer supports install-beside when free space exists). Verify at install time which bootloader lists both (Limine vs GRUB).
 
