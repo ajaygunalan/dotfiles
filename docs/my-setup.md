@@ -1,4 +1,4 @@
-# Machine Inventory
+# My Setup
 
 Everything installed on the laptop, what it does, when to use it, and whether it stays.
 Written 2026-09-08 after the pre-reinstall cleanup. Source of truth for the Ubuntu 26.04 bootstrap.
