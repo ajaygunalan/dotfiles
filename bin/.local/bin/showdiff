@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# showdiff [--staged] [PATH] [START:END]
+#   no range: the whole diff of PATH (or of everything)
+#   with range: only lines START..END of the current file, green for added, plus the removed lines (red) that sat among them
+set -euo pipefail
+staged=()
+if [ "${1:-}" = "--staged" ]; then staged=(--staged); shift; fi
+path=${1:-}; range=${2:-}
+if [ -z "$range" ]; then
+  git diff --no-color "${staged[@]}" -- ${path:+"$path"} | batcat --language=diff --theme=Review --style=plain --paging=never --color=always
+  exit 0
+fi
+git diff --no-color -U0 "${staged[@]}" -- "$path" | python3 -c '
+import re, sys
+lo, hi = map(int, sys.argv[1].split(":"))
+out, new_line, inside = [], None, False
+for line in sys.stdin:
+    m = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@", line)
+    if m:
+        new_line = int(m.group(1)); count = int(m.group(2) or 1)
+        inside = new_line <= hi and new_line + max(count, 1) - 1 >= lo
+        if inside: out.append("@@ around line %d @@\n" % new_line)
+        continue
+    if new_line is None or line.startswith(("diff ", "index ", "--- ", "+++ ")):
+        continue
+    if line.startswith("-"):
+        if lo <= new_line <= hi + 1: out.append(line)
+        continue
+    if lo <= new_line <= hi: out.append(line)
+    new_line += 1
+sys.stdout.write("".join(out) if out else "no changes touch lines %d:%d\n" % (lo, hi))
+' "$range" | batcat --language=diff --theme=Review --style=plain --paging=never --color=always

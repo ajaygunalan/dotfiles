@@ -25,7 +25,9 @@ Written 2026-09-08 after the pre-reinstall cleanup. Source of truth for the Ubun
 |---|---|---|---|
 | [Ghostty](https://ghostty.org) | GPU terminal, tabs and splits built in | the only terminal; config repo on GitHub | core |
 | [Starship](https://starship.rs) | draws the prompt line (folder, git branch, status) | invisible, runs each time you press Enter | default |
-| [bat](https://github.com/sharkdp/bat) | `cat` with colour and line numbers | `bat file.py` | default |
+| [bat](https://github.com/sharkdp/bat) | `cat` with colour and line numbers | `bat file.py`; the `bat` package here adds a `Review` theme with a yellow line highlight, run `batcat cache --build` after stow | default |
+| `show` (own script, `bin` package) | print a line range of a file with chosen lines highlighted yellow; bat underneath | `show server/storage.py 214:232 220:224 227:231` | core |
+| `showdiff` (own script, `bin` package) | the git diff of one file clipped to a line range, red removed, green added; git plus bat underneath | `showdiff server/storage.py 347:381`, `showdiff --staged`, no range for the whole diff | core |
 | [eza](https://eza.rocks) | `ls` with colour, icons, git status | aliased to `ls` already; `eza --tree` | default |
 | [ripgrep](https://github.com/BurntSushi/ripgrep) | search *inside* files, fast, skips .git | `rg "admittance"`, `rg -i rcm --type py`, `rg "def solve" -A 3` | core |
 | [fd](https://github.com/sharkdp/fd) | search file *names* | `fd controller`, `fd -e launch.py`, `fd --changed-within 7d` | core |
