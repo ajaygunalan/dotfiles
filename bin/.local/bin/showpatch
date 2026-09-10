@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# showpatch FILE.patch     show a proposed change before it is applied: red removed, green added
+# apply it afterwards with: git apply FILE.patch
+set -euo pipefail
+batcat --language=diff --theme=Review --style=plain --paging=never --color=always "$1"
