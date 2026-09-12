@@ -1,3 +1,7 @@
 [submodule "skills/ros2-engineering-skills"]
 	path = skills/ros2-engineering-skills
 	url = https://github.com/ajaygunalan/ros2-engineering-skills.git
+[submodule "skills/chapter-to-synced-lecture"]
+	path = skills/chapter-to-synced-lecture
+	url = git@github.com:ajaygunalan/chapter-to-synced-lecture.git
+	branch = main
